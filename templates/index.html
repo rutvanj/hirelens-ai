@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Analyzer | Optimize Your Career</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- SECTION 1: LANDING VIEW -->
+        <section id="landing-view" class="view {% if result %}hidden{% endif %}">
+            <div class="hero">
+                <div class="badge">AI-Powered ATS Optimization</div>
+                <h1>Land Your Dream Job with <span class="text-gradient">AI Precision</span></h1>
+                <p>Analyze your resume against job descriptions, enrich it with LinkedIn data, and get actionable insights to beat the ATS.</p>
+                <div class="hero-actions">
+                    <button class="btn-primary btn-large" onclick="showView('input-view')">Analyze My Resume</button>
+                    <a href="#features" class="btn-secondary">How it works</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: INPUT VIEW -->
+        <section id="input-view" class="view hidden">
+            <div class="container-small">
+                <div class="card glass">
+                    <div class="form-header">
+                        <h2>New Analysis</h2>
+                        <p>Fill in the details below to get started.</p>
+                    </div>
+                    <form method="POST" enctype="multipart/form-data" id="analyze-form">
+                        <div class="input-group">
+                            <label>Resume Text</label>
+                            <textarea name="resume" placeholder="Paste your resume content here..."></textarea>
+                        </div>
+                        
+                        <div class="input-group">
+                            <label>Or Upload Resume (PDF / Image)</label>
+                            <input type="file" name="resume_file" accept=".pdf,.png,.jpg,.jpeg">
+                        </div>
+
+                        <div class="input-group">
+                            <label>LinkedIn Profile URL (Optional)</label>
+                            <input type="text" name="linkedin_url" placeholder="https://www.linkedin.com/in/username/" class="linkedin-input">
+                        </div>
+
+                        <div class="input-group">
+                            <label>Job Description</label>
+                            <textarea name="job_desc" placeholder="Paste the job description here..."></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="showView('landing-view')">Back</button>
+                            <button type="submit" class="btn-primary" onclick="showLoading()">Analyze Now</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Loading Overlay -->
+            <div id="loading-overlay" class="hidden">
+                <div class="loader"></div>
+                <p>Analyzing your profile...</p>
+            </div>
+        </section>
+
+        <!-- SECTION 3: RESULT VIEW -->
+        <section id="result-view" class="view {% if not result %}hidden{% endif %}">
+            <div class="container">
+                <div class="result-header">
+                    <button class="btn-secondary" onclick="showView('input-view')">← New Analysis</button>
+                    <h1>Analysis Results</h1>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Score Card -->
+                    <div class="card glass score-card">
+                        <h3>ATS Resume Score</h3>
+                        <div class="score-display">
+                            <canvas id="scoreGauge" width="200" height="200"></canvas>
+                            <div class="score-value">{{ result.resume_score }}%</div>
+                        </div>
+                        <p class="score-label">Resume Strength with LinkedIn Bonus</p>
+                    </div>
+
+                    <!-- Job Match Card -->
+                    <div class="card glass">
+                        <h3>Job Match Rate</h3>
+                        <div class="match-bar-container">
+                            <div class="match-bar">
+                                <div class="match-fill" style="width: {{ result.match_score }}%"></div>
+                            </div>
+                            <div class="match-text text-gradient">{{ result.match_score }}% Match</div>
+                        </div>
+                    </div>
+
+                    <!-- LinkedIn Insight Card -->
+                    {% if result.linkedin_profile or result.linkedin_error %}
+                    <div class="card glass linkedin-card">
+                        <h3>LinkedIn Insights</h3>
+                        {% if result.linkedin_error %}
+                            <div class="alert alert-error">⚠️ {{ result.linkedin_error }}</div>
+                        {% endif %}
+                        {% if result.linkedin_profile %}
+                            <div class="li-profile-header">
+                                <div class="li-icon">in</div>
+                                <div class="li-info">
+                                    <strong>{{ result.linkedin_profile.name }}</strong>
+                                    <span>{{ result.linkedin_profile.headline }}</span>
+                                    <small>{{ result.linkedin_profile.title }} @ {{ result.linkedin_profile.company }}</small>
+                                </div>
+                            </div>
+                            <div class="li-skills-tags">
+                                {% for skill in result.linkedin_skills %}
+                                    <span class="tag tag-linkedin">{{ skill }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Skills Card -->
+                    <div class="card glass">
+                        <h3>Skills Analysis</h3>
+                        <div class="skills-split">
+                            <div class="skill-section">
+                                <label>Matched Skills</label>
+                                <div class="tags">
+                                    {% for skill in result.skills %}
+                                        <span class="tag tag-match">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="skill-section">
+                                <label>Missing Skills</label>
+                                <div class="tags">
+                                    {% for skill in result.missing %}
+                                        <span class="tag tag-missing">{{ skill }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Radar Chart -->
+                    <div class="card glass chart-card">
+                        <h3>Skill Radar</h3>
+                        <canvas id="skillRadar"></canvas>
+                    </div>
+
+                    <!-- Suggestions Card -->
+                    <div class="card glass suggestions-card">
+                        <h3>Personalized Recommendations</h3>
+                        <div class="suggestion-list">
+                            {% if result.linkedin_suggestions %}
+                                {% for sug in result.linkedin_suggestions %}
+                                    <div class="suggestion-item li-sug">
+                                        <span class="dot"></span> {{ sug }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            <div class="suggestion-item">
+                                <span class="dot"></span> Learn Docker to improve deployment and DevOps skills.
+                            </div>
+                            <div class="suggestion-item">
+                                <span class="dot"></span> Add measurable impact to project descriptions.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function showLoading() {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+
+        // Radar Chart Initialization
+        {% if result %}
+        window.onload = function() {
+            const ctx = document.getElementById('skillRadar').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ["Python","C++","Embedded","GitHub","HTML/CSS","Arduino"],
+                    datasets: [{
+                        label: 'Skill Proficiency',
+                        data: [80, 70, 75, 60, 65, 85],
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: '#6366f1',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#6366f1'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: { color: '#334155' },
+                            grid: { color: '#334155' },
+                            pointLabels: { color: '#94a3b8' },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        };
+        {% endif %}
+    </script>
+</body>
+</html>
