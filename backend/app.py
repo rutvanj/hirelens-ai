@@ -14,7 +14,8 @@ from PIL import Image
 import io
 
 app = Flask(__name__)
-CORS(app)
+# Allow cross-origin requests from the future Vercel domain and local dev
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 
 # -------- PDF TEXT EXTRACTION --------
@@ -132,5 +133,6 @@ def analyze_api():
 # -------- RUN SERVER --------
 
 if __name__ == "__main__":
+    # Use the PORT environment variable provided by Render or default to 10000
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)

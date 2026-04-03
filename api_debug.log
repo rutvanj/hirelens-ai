@@ -26,3 +26,10 @@ Token: c4bf...89ae
 Status: 200
 Response: {"snapshot_id":"sd_mniuhz7s1d9c2a914e"}
 Scrape Status: 200
+
+--- API Call ---
+URL: https://api.brightdata.com/datasets/v3/trigger?dataset_id=gd_l1viktl72bvl7bjuj0&include_errors=true
+Token: c4bf...89ae
+Status: 200
+Response: {"snapshot_id":"sd_mniy470o1svbaw9c6h"}
+Scrape Status: 200
