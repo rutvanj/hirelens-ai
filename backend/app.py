@@ -99,33 +99,33 @@ def analyze_api():
     job_desc = request.form.get("job_desc", "")
     resume_text = ""
 
-        # -------- CHECK FILE UPLOAD --------
-        if "resume_file" in request.files:
+    # -------- CHECK FILE UPLOAD --------
+    if "resume_file" in request.files:
 
-            file = request.files["resume_file"]
+        file = request.files["resume_file"]
 
-            if file.filename != "":
+        if file.filename != "":
 
-                filename = file.filename.lower()
+            filename = file.filename.lower()
 
-                # PDF
-                if filename.endswith(".pdf"):
-                    resume_text = extract_text_from_pdf(file)
+            # PDF
+            if filename.endswith(".pdf"):
+                resume_text = extract_text_from_pdf(file)
 
-                # Image
-                elif filename.endswith(".png") or filename.endswith(".jpg") or filename.endswith(".jpeg"):
-                    resume_text = extract_text_from_image(file)
+            # Image
+            elif filename.endswith(".png") or filename.endswith(".jpg") or filename.endswith(".jpeg"):
+                resume_text = extract_text_from_image(file)
 
-        # -------- LINKEDIN ENRICHMENT --------
-        linkedin_url = request.form.get("linkedin_url", "")
-        pdl_data = None
-        if linkedin_url:
-            pdl_data = fetch_bright_data(linkedin_url)
+    # -------- LINKEDIN ENRICHMENT --------
+    linkedin_url = request.form.get("linkedin_url", "")
+    pdl_data = None
+    if linkedin_url:
+        pdl_data = fetch_bright_data(linkedin_url)
 
-        # -------- ANALYZE RESUME --------
-        result = analyze_resume(resume_text, job_desc, pdl_data)
-        
-        return jsonify(result), 200
+    # -------- ANALYZE RESUME --------
+    result = analyze_resume(resume_text, job_desc, pdl_data)
+    
+    return jsonify(result), 200
 
     return jsonify({"error": "Invalid request"}), 400
 
