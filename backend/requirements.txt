@@ -1,0 +1,7 @@
+flask
+pdfplumber
+pillow
+pytesseract
+requests
+python-dotenv
+flask-cors
