@@ -140,7 +140,7 @@ export default function ResultsPage() {
                  <h2 className="text-3xl font-bold">Deep LinkedIn Insights</h2>
                  <p className="text-gray-400">Powered by Bright Data</p>
                </div>
-               <LinkedInProfile data={linkedinRawData} error={data.linkedin_error} loading={false} />
+               <LinkedInProfile data={linkedinRawData} error={data.linkedin_error} loading={false} injectedSkills={linkedinSkills.length > 0 ? linkedinSkills : skills} />
             </motion.div>
           ) : (
             // Only show suggestions if there's no full raw profile but we have suggestions somehow

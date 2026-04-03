@@ -6,7 +6,7 @@ const Skeleton = ({ className }) => (
   <div className={`animate-pulse bg-gray-800 rounded-lg ${className}`}></div>
 )
 
-export default function LinkedInProfile({ data, loading, error }) {
+export default function LinkedInProfile({ data, loading, error, injectedSkills = [] }) {
   // Loading State
   if (loading) {
     return (
@@ -69,7 +69,7 @@ export default function LinkedInProfile({ data, loading, error }) {
   // Experience and Education (Arrays)
   const experiences = data.experience || []
   const education = data.education || []
-  const posts = data.activities || data.posts || []
+  const posts = data.activity || data.activities || data.posts || []
   
   // Basic attributes
   const currentCompany = data.current_company_name || (experiences[0] ? experiences[0].company : 'N/A')
@@ -77,9 +77,19 @@ export default function LinkedInProfile({ data, loading, error }) {
   const profileId = data.public_identifier || data.id || ''
 
   // Skills
-  let mappedSkills = []
-  if (data.skills && Array.isArray(data.skills)) {
-     mappedSkills = data.skills.map(s => typeof s === 'string' ? s : (s.name || s))
+  let mappedSkills = Array.isArray(injectedSkills) && injectedSkills.length > 0 ? injectedSkills : []
+  
+  if (data.skills) {
+     let raw = []
+     if (Array.isArray(data.skills)) {
+         raw = data.skills.map(s => typeof s === 'string' ? s : (s.name || s))
+     } else if (typeof data.skills === 'string') {
+         raw = data.skills.split(',').map(s => s.trim())
+     }
+     
+     if (raw.length > 0) {
+         mappedSkills = [...new Set([...mappedSkills, ...raw])]
+     }
   }
 
   return (
@@ -163,12 +173,12 @@ export default function LinkedInProfile({ data, loading, error }) {
                   
                   {/* Content Card */}
                   <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white/5 hover:bg-white/10 transition-colors p-5 rounded-2xl border border-white/5">
-                    <div className="text-xs text-indigo-300 font-bold mb-1">{exp.starts_at ? `${exp.starts_at.year || ''} - ${exp.ends_at ? exp.ends_at.year : 'Present'}` : (exp.duration || '')}</div>
+                    <div className="text-xs text-indigo-300 font-bold mb-1">{exp.start_date || (exp.starts_at && exp.starts_at.year) || ''} - {exp.end_date || (exp.ends_at && exp.ends_at.year) || 'Present'}</div>
                     <h3 className="font-bold text-white text-lg">{exp.title}</h3>
                     <div className="text-md text-gray-300 font-medium mb-3">{exp.company}</div>
-                    {exp.description && (
+                    {(exp.description || exp.description_html) && (
                       <p className="text-sm text-gray-400 line-clamp-3 hover:line-clamp-none transition-all cursor-pointer">
-                        {exp.description}
+                        {exp.description || 'Description available.'}
                       </p>
                     )}
                   </div>
@@ -208,13 +218,12 @@ export default function LinkedInProfile({ data, loading, error }) {
             <div className="space-y-6">
               {education.length > 0 ? education.map((edu, idx) => (
                 <div key={idx} className="relative before:absolute before:left-[-1.5rem] before:top-2 before:w-2 before:h-2 before:bg-purple-500 before:rounded-full before:opacity-50">
-                  <h3 className="font-bold text-white">{edu.school || edu.institution || 'Unknown Institution'}</h3>
+                  <h3 className="font-bold text-white">{edu.title || edu.school || edu.institution || 'Unknown Institution'}</h3>
                   <div className="text-sm text-gray-300 mt-1">
-                     {(edu.degree_name || edu.degree) && <span className="font-medium text-purple-300">{edu.degree_name || edu.degree}</span>}
-                     {(edu.field_of_study) && <span> in {edu.field_of_study}</span>}
+                     {(edu.description || edu.degree_name || edu.degree) && <span className="font-medium text-purple-300">{edu.description || edu.degree_name || edu.degree}</span>}
                   </div>
                   <div className="flex items-center gap-1 mt-2 text-xs text-gray-500">
-                    <Calendar size={12} /> {(edu.starts_at ? edu.starts_at.year : '')} - {(edu.ends_at ? edu.ends_at.year : 'Present')}
+                    <Calendar size={12} /> {(edu.start_year || (edu.starts_at && edu.starts_at.year) || '')} - {(edu.end_year || (edu.ends_at && edu.ends_at.year) || 'Present')}
                   </div>
                 </div>
               )) : (
@@ -229,7 +238,7 @@ export default function LinkedInProfile({ data, loading, error }) {
             <div className="space-y-4">
               {posts.length > 0 ? posts.slice(0, 3).map((post, idx) => (
                 <div key={idx} className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-white/10 transition">
-                  <p className="text-sm text-gray-300 mb-3 line-clamp-3">{post.post_body || post.post_content || post.text || post.title}</p>
+                  <p className="text-sm text-gray-300 mb-3 line-clamp-3">{post.post_body || post.post_content || post.text || post.title || post.interaction}</p>
                   <div className="flex items-center gap-4 text-xs text-gray-400">
                      <span className="flex items-center gap-1"><ThumbsUp size={12} className="text-indigo-400" /> {post.likes || 0}</span>
                      <span className="flex items-center gap-1"><MessageSquare size={12} className="text-purple-400" /> {post.comments || 0}</span>
