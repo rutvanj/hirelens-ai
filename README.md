@@ -1,105 +1,61 @@
-# AI Resume Analyzer
+# HireLens AI
 
-AI Resume Analyzer is a web application that analyzes resumes against job descriptions to help candidates improve their chances of passing Applicant Tracking Systems (ATS).
+HireLens AI is an AI-powered resume analysis platform built to help users evaluate how well their resume matches a given job description.
 
-The system extracts text from resumes, detects relevant skills, identifies missing skills based on job descriptions, and provides actionable suggestions to improve the resume.
+The platform analyzes uploaded resumes, detects relevant skills, identifies missing keywords, and provides ATS-style feedback to help improve resume quality and job fit.
 
-##Live Demo
+This project was developed by **Team Yuktava** as a hackathon project.
 
-The application is deployed on Render.
+---
 
-Live Application:
-https://ai-resume-analyzer-ugm0.onrender.com
+## 🚀 Live Demo
 
+Frontend / App: [Add your deployed link here]  
+Backend: [Add backend link here if separate]
 
+---
 
-Features
+## ✨ Features
 
-- ATS-style resume scoring
+- Resume upload support
 - Job description matching
-- Automatic skill detection
-- Missing skills analysis
-- Skill radar chart visualization
+- ATS-style resume analysis
+- Skill extraction
+- Missing keyword detection
 - Resume improvement suggestions
-- Resume upload support (PDF / image)
-- OCR-based text extraction for scanned resumes
+- Simple and user-friendly interface
 
+---
 
+## 🛠 Tech Stack
 
-Tech Stack
-
-Backend
-
+### Backend
 - Python
 - Flask
 
-Frontend
-
+### Frontend
 - HTML
 - CSS
-- Chart.js
+- JavaScript
 
-Resume Processing
+### Resume Processing
+- PDF text extraction
+- OCR-based processing *(if enabled)*
 
-- pdfplumber
-- Tesseract OCR
-- Pillow
+### Deployment
+- Render
+- GitHub
 
-Deployment
+---
 
-- Render (Cloud Hosting)
-- GitHub (Version Control)
+## 📂 Project Structure
 
-
-
-Installation
-
-Clone the repository:
-
-git clone https://github.com/rutvanj/ai-resume-analyzer.git
-cd ai-resume-analyzer
-
-Install dependencies:
-
-pip install flask pdfplumber pillow pytesseract
-
-
-
-Running the Application Locally
-
-Start the Flask server:
-
-python app.py
-
-Open your browser and go to:
-
-http://127.0.0.1:5000
-
-
-
-Deployment
-
-The backend is deployed on Render.
-Render automatically redeploys the application when new code is pushed to GitHub.
-
-The Flask server runs using:
-
-app.run(host="0.0.0.0", port=os.environ.get("PORT",10000))
-
-
-
-Future Improvements
-
-- AI-based resume rewriting
-- ATS keyword optimization
-- NLP-based resume scoring
-- Job recommendation engine
-- LinkedIn profile analysis
-
-
-
-Author
-
-Rutva Jakhiya
-B.Tech Information Technology
-A. D. Patel Institute of Technology
+```bash
+HireLens-AI/
+│
+├── static/              # CSS, JS, and frontend assets
+├── templates/           # HTML templates
+├── app.py               # Main Flask application
+├── requirements.txt     # Python dependencies
+├── render.yaml          # Deployment config
+└── README.md
