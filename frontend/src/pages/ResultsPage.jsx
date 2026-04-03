@@ -59,7 +59,7 @@ export default function ResultsPage() {
         {/* Main Header & Hero Score */}
         <div className="space-y-8 mb-12">
           
-          <div className="flex justify-between items-end">
+          <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-6">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-white/5 bg-white/5 text-[9px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4">
                 <ShieldCheck size={12} /> Analysis Complete
@@ -68,7 +68,7 @@ export default function ResultsPage() {
               <p className="text-brand-light-gray mt-2 font-medium">Deep-lens evaluation of candidate fit and job intelligence.</p>
               
               {jobRole && (
-                <div className="flex items-center gap-2 mt-6">
+                <div className="flex flex-wrap items-center gap-2 mt-6">
                   <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest bg-brand-blue/10 text-brand-blue border border-brand-blue/20 px-4 py-2 rounded-xl">
                     <Briefcase size={12} /> {jobRole}
                   </span>
@@ -91,7 +91,7 @@ export default function ResultsPage() {
           <motion.div 
             initial={{ opacity: 0, y: -20 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="glass-panel rounded-[2.5rem] p-12 text-center flex flex-col md:flex-row items-center justify-between border border-brand-blue/20 relative overflow-hidden group"
+            className="glass-panel rounded-[2.5rem] p-6 md:p-12 text-center flex flex-col md:flex-row items-center justify-between border border-brand-blue/20 relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/10 via-transparent to-transparent pointer-events-none" />
             

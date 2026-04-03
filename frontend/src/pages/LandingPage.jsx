@@ -26,7 +26,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-6xl lg:text-8xl font-bold mb-8 tracking-tighter text-glow"
+            className="text-4xl sm:text-6xl lg:text-8xl font-bold mb-8 tracking-tighter text-glow"
           >
             HireLens AI
           </motion.h1>
@@ -52,9 +52,6 @@ export default function LandingPage() {
                 Start Analyzing <Zap size={20} fill="currentColor" />
               </Button>
             </Link>
-            <Button variant="outline" className="h-16 px-10 text-base">
-              View Demo
-            </Button>
           </motion.div>
         </div>
 
@@ -91,9 +88,6 @@ export default function LandingPage() {
         </div>
       </div>
 
-      <footer className="absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-[0.4em] text-white/20 whitespace-nowrap">
-        HireLens Intelligence Platform &copy; 2026 — Built for Hackathon Demo
-      </footer>
     </div>
   )
 }

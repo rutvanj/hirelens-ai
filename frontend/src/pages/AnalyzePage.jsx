@@ -74,7 +74,7 @@ export default function AnalyzePage() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/5 bg-white/5 text-[9px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4">
             <ShieldCheck size={12} /> Secure Intelligence Processing
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Profile Intelligence Scan</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Profile Intelligence Scan</h1>
           <p className="text-brand-light-gray font-medium">Initialize candidate evaluation via resume, LinkedIn, and job requirements.</p>
         </motion.div>
 
