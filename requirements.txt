@@ -1,7 +1,0 @@
-flask
-pdfplumber
-pillow
-pytesseract
-chartjs
-requests
-python-dotenv
