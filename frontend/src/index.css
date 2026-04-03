@@ -1,21 +1,61 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-blue: #7dd3fc; /* sky-300 / light blue */
+  --color-brand-dark: #0a0a0a; /* black */
+  --color-brand-gray: #171717; /* neutral-900 */
+  --color-brand-light-gray: #a3a3a3; /* neutral-400 */
+}
+
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  background-color: #030712; /* gray-950 */
-  color: #f3f4f6; /* gray-100 */
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  background-color: var(--color-brand-dark);
+  color: var(--color-brand-light-gray);
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glassmorphism utility */
+/* Watermelon UI Typography */
+h1, h2, h3, .text-glow {
+  color: var(--color-brand-blue);
+  text-shadow: 0 0 16px rgba(125, 211, 252, 0.2);
+  letter-spacing: -0.025em;
+}
+
+/* Watermelon Glassmorphism */
 .glass-panel {
-  background-color: rgba(255, 255, 255, 0.05); /* bg-white/5 */
-  backdrop-filter: blur(16px); /* backdrop-blur-lg */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 */
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-xl */
+  background: rgba(23, 23, 23, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-hover:hover {
+  background: rgba(23, 23, 23, 0.6);
+  border-color: rgba(125, 211, 252, 0.3);
+  box-shadow: 0 0 40px rgba(125, 211, 252, 0.1);
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-brand-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brand-blue);
 }
