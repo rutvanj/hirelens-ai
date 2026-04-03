@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Home, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react'
 import RadarChart from '../components/RadarChart'
+import LinkedInProfile from '../components/LinkedInProfile'
 
 export default function ResultsPage() {
   const navigate = useNavigate()
@@ -30,6 +31,7 @@ export default function ResultsPage() {
   const skills = data.skills || []
   const missing = data.missing || []
   const linkedin = data.linkedin_profile || null
+  const linkedinRawData = data.linkedin_raw_data || null
   const linkedinSkills = data.linkedin_skills || []
   const suggestions = data.linkedin_suggestions || []
 
@@ -131,48 +133,31 @@ export default function ResultsPage() {
 
           </div>
 
-          {/* Bottom LinkedIn Row */}
-          {linkedin || suggestions.length > 0 ? (
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-3 glass-panel rounded-3xl p-8">
-              <div className="flex items-center gap-3 mb-6">
-                 <div className="p-2 bg-blue-500/20 rounded-lg">
-                    <svg className="w-6 h-6 text-blue-500" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fillRule="evenodd" d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" clipRule="evenodd" /></svg>
-                 </div>
-                 <h2 className="text-2xl font-bold">LinkedIn Analysis</h2>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <div>
-                    <h3 className="font-semibold text-gray-300 mb-2">Profile Alignment</h3>
-                    <p className="text-gray-400 text-sm mb-4">
-                      {linkedin ? "Full profile data successfully connected and analyzed." : "Only abstract suggestions generated."}
-                    </p>
-                    
-                    {linkedinSkills.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-xs uppercase text-gray-500 font-bold mb-2 tracking-wider">LinkedIn Skills Found</h4>
-                        <div className="flex flex-wrap gap-2">
-                           {linkedinSkills.map((s, i) => <span key={i} className="text-xs bg-white/10 px-2 py-1 rounded text-gray-300">{s}</span>)}
-                        </div>
-                      </div>
-                    )}
-                 </div>
-                 
-                 <div>
-                    <h3 className="font-semibold text-gray-300 mb-3">Improvement Suggestions</h3>
-                    <ul className="space-y-3">
-                       {suggestions.map((sug, i) => (
-                         <li key={i} className="flex gap-3 text-sm text-gray-400 bg-white/5 p-3 rounded-xl border border-white/5">
-                           <div className="mt-0.5 text-indigo-400">✦</div>
-                           {sug}
-                         </li>
-                       ))}
-                       {suggestions.length === 0 && <p className="text-sm text-gray-500">No specific suggestions at this time.</p>}
-                    </ul>
-                 </div>
-              </div>
+          {/* Comprehensive LinkedIn Profile Component */}
+          {(linkedinRawData || data.linkedin_error) ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="lg:col-span-3 mt-12 w-full border-t border-white/10 pt-12">
+               <div className="text-center mb-8">
+                 <h2 className="text-3xl font-bold">Deep LinkedIn Insights</h2>
+                 <p className="text-gray-400">Powered by Bright Data</p>
+               </div>
+               <LinkedInProfile data={linkedinRawData} error={data.linkedin_error} loading={false} />
             </motion.div>
-          ) : null}
+          ) : (
+            // Only show suggestions if there's no full raw profile but we have suggestions somehow
+            suggestions.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="lg:col-span-3 glass-panel rounded-3xl p-8">
+                <h2 className="text-2xl font-bold mb-6">Suggestions</h2>
+                <ul className="space-y-3">
+                   {suggestions.map((sug, i) => (
+                     <li key={i} className="flex gap-3 text-sm text-gray-400 bg-white/5 p-3 rounded-xl border border-white/5">
+                       <div className="mt-0.5 text-indigo-400">✦</div>
+                       {sug}
+                     </li>
+                   ))}
+                </ul>
+              </motion.div>
+            )
+          )}
 
         </div>
 

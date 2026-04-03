@@ -137,6 +137,7 @@ def _analyze_logic(resume, job_desc, pdl_data=None):
         "skills": merged_skills,
         "missing": missing,
         "linkedin_profile": linkedin_profile,
+        "linkedin_raw_data": data if 'data' in locals() else None,
         "linkedin_skills": linkedin_skills,
         "linkedin_suggestions": linkedin_suggestions[:6],
         "linkedin_error": linkedin_error

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ScanSearch, Briefcase, Linkedin, Zap } from 'lucide-react'
+import { ScanSearch, Briefcase, Link as LinkIcon, Zap } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -56,7 +56,7 @@ export default function LandingPage() {
             desc="Extracts skills, suggests improvements and points out missing keywords."
           />
           <Feature 
-            icon={<Linkedin className="text-blue-400" />} 
+            icon={<LinkIcon className="text-blue-400" />} 
             title="LinkedIn Enrichment" 
             desc="Automatically fetches extended profile details via Bright Data."
           />

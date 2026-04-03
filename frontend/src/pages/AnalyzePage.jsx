@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Upload, FileText, Briefcase, Linkedin, ArrowRight, Loader2 } from 'lucide-react'
+import { Upload, FileText, Briefcase, Link, ArrowRight, Loader2 } from 'lucide-react'
 
 export default function AnalyzePage() {
   const navigate = useNavigate()
@@ -122,7 +122,7 @@ export default function AnalyzePage() {
           {/* LinkedIn URL */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
-              <Linkedin size={16} className="text-blue-400" /> LinkedIn Profile URL
+              <Link size={16} className="text-blue-400" /> LinkedIn Profile URL
             </label>
             <input 
               type="url"
