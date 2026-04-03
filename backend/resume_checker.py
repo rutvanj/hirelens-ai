@@ -18,17 +18,15 @@ def analyze_resume(resume, job_desc, pdl_data=None):
             "linkedin_error": str(e)
         }
 
+from llm_service import extract_candidate_skills
+
 def _analyze_logic(resume, job_desc, pdl_data=None):
     resume = resume.lower() if resume else ""
     job_desc = job_desc.lower() if job_desc else ""
 
-    skills_db = [
-        "python","machine learning","sql","tensorflow","pandas",
-        "numpy","java","c++","aws","docker","kubernetes"
-    ]
-
-    resume_skills = [skill for skill in skills_db if skill in resume]
-    job_skills = [skill for skill in skills_db if skill in job_desc]
+    print("\n--- LLM EXTRACTION PHASE ---")
+    resume_skills = extract_candidate_skills(resume)
+    job_skills = extract_candidate_skills(job_desc)
 
     # -------- BRIGHT DATA PROCESSING --------
     linkedin_skills = []
@@ -61,41 +59,35 @@ def _analyze_logic(resume, job_desc, pdl_data=None):
                 "location": data.get("location") or data.get("city")
             }
 
-            # Skills Extraction
-            raw_li_skills = data.get("skills", [])
-            if raw_li_skills and isinstance(raw_li_skills, list) and len(raw_li_skills) > 0:
-                if isinstance(raw_li_skills[0], dict):
-                    raw_li_skills = [s.get("name") for s in raw_li_skills if isinstance(s, dict) and s.get("name")]
-
-            # Experience Keyword Mining
+            # Normalizing Experience and Education for LLM Extraction
+            linkedin_text = ""
+            if data.get("headline"):
+                linkedin_text += data.get("headline") + "\n"
+            
             experience = data.get("experience", [])
             if isinstance(experience, list):
                 for exp in experience:
-                    if not isinstance(exp, dict): continue
-                    desc = exp.get("description", "")
-                    title = exp.get("title", "")
-                    if desc:
-                        for s in skills_db:
-                            if s in desc.lower():
-                                raw_li_skills.append(s)
-                    if title:
-                        for s in skills_db:
-                            if s in title.lower():
-                                raw_li_skills.append(s)
-            
-            # Education Keyword Mining
+                    if isinstance(exp, dict):
+                        linkedin_text += exp.get("title", "") + " " + exp.get("description", "") + "\n"
+                        
             education = data.get("education", [])
             if isinstance(education, list):
                 for edu in education:
-                    if not isinstance(edu, dict): continue
-                    field = edu.get("field_of_study") or edu.get("degree")
-                    if field:
-                        for s in skills_db:
-                            if s in field.lower():
-                                raw_li_skills.append(s)
+                    if isinstance(edu, dict):
+                        linkedin_text += edu.get("field_of_study", "") + " " + edu.get("degree", "") + "\n"
+            
+            # Combine any hardcoded skills returned
+            raw_li_skills = []
+            if data.get("skills"):
+                 raw_li_skills = [s.get("name") for s in data.get("skills") if isinstance(s, dict)]
+            
+            # LLM Dynamic Extraction
+            extracted_li = []
+            if linkedin_text.strip():
+                extracted_li = extract_candidate_skills(linkedin_text)
 
-            # Deduplicate and filter by skills_db
-            linkedin_skills = sorted(list(set([s.lower() for s in raw_li_skills if s and isinstance(s, str) and s.lower() in skills_db])))
+            # Deduplicate
+            linkedin_skills = sorted(list(set(raw_li_skills + extracted_li)))
 
             # Suggestions
             if not data.get("headline"):
