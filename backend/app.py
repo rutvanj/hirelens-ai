@@ -1,9 +1,9 @@
 import os
 import requests
 from dotenv import load_dotenv
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 from resume_checker import analyze_resume
-
 load_dotenv()
 BRIGHT_DATA_API_KEY = os.getenv("BRIGHT_DATA_API_KEY")
 BRIGHT_DATA_DATASET_ID = os.getenv("BRIGHT_DATA_DATASET_ID", "gd_l1vsh664197as6562c")
@@ -14,6 +14,7 @@ from PIL import Image
 import io
 
 app = Flask(__name__)
+CORS(app)
 
 
 # -------- PDF TEXT EXTRACTION --------
@@ -92,15 +93,11 @@ def fetch_bright_data(linkedin_url):
                 return {"error": f"Bright Data API Error: {response.status_code}"}
     except Exception as e:
         return {"error": str(e)}
-@app.route("/", methods=["GET", "POST"])
-def index():
+@app.route("/analyze", methods=["POST"])
+def analyze_api():
 
-    result = None
-
-    if request.method == "POST":
-
-        job_desc = request.form.get("job_desc", "")
-        resume_text = ""
+    job_desc = request.form.get("job_desc", "")
+    resume_text = ""
 
         # -------- CHECK FILE UPLOAD --------
         if "resume_file" in request.files:
@@ -127,9 +124,10 @@ def index():
 
         # -------- ANALYZE RESUME --------
         result = analyze_resume(resume_text, job_desc, pdl_data)
+        
+        return jsonify(result), 200
 
-    return render_template("index.html", result=result)
-
+    return jsonify({"error": "Invalid request"}), 400
 
 # -------- RUN SERVER --------
 

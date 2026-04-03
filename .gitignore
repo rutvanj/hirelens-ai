@@ -2,3 +2,5 @@ __pycache__/
 *.pyc
 .env
 .vscode/
+backend/.env_backup
+backend/api_debug.log
