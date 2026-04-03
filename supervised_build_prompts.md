@@ -41,10 +41,11 @@
 - **Status**: Completed & Verified ✅ (PDF works; OCR fallback verified)
 
 ### Step 5: AI-Driven Analysis Integration
-- **Goal**: Leverage LLMs for ATS scoring and feedback.
+- **Goal**: Leverage LLMs or custom engines for ATS scoring and feedback.
 - **Tasks**:
-  - Backend: Gemini/OpenAI API integration.
-  - Construct precise prompts for resume evaluation.
+  - Backend: `resume_analyzer.py` for skill extraction and scoring.
+  - Integration: `POST /api/analyze` to return structured results.
+- **Status**: Completed & Verified ✅
 
 ### Step 6: Dynamic Results Dashboard
 - **Frontend**: Visualize scores, skill gaps, and suggestions.
@@ -136,5 +137,36 @@
 - **Debugging Notes**:
   - *Tesseract Check*: Missing on this environment; fallback logic correctly informs the user.
   - *PDF Validation*: Confirmed `pdfplumber` works on valid PDF structures generated via `fpdf`.
+- **Date**: 2026-04-03
+- **Date**: 2026-04-03
+- **Status**: Completed & Verified ✅
+
+### Step 5: Advanced ATS-Style Analysis Engine
+- **Goal**: Implement a complete scoring, matching, and recommendation system.
+- **Tasks Completed**:
+    1. **Skill Database**: Curated a dictionary of tech-focused keywords across languages, cloud, and tools.
+    2. **Normalization Engine**: Built a regex-based text cleaner to ensure accurate matches.
+    3. **Scoring Logic**:
+        - `Match Score`: Number of intersecting skills / total required job skills.
+        - `Resume Score`: Quantitative skill count indicator.
+    4. **Recommendation Logic**: Constructed a rule-based engine to provide constructive career feedback.
+    5. **API Integration**: Created `POST /api/analyze` to serve JSON analysis reports.
+- **Key Logic (resume_analyzer.py)**:
+  ```python
+  def analyze_resume(resume_text, job_description):
+      resume_skills = extract_skills(resume_text)
+      job_skills = extract_skills(job_description)
+      match_score = (len(resume_skills.intersection(job_skills)) / len(job_skills)) * 100
+      return { "match_score": round(match_score), ... }
+  ```
+- **Verification Result**:
+  - `Code_Status`: ✅
+  - `Skill_Extraction`: ✅ (Verified with Python, SQL, Docker test cases)
+  - `Scoring_Logic`: ✅ (Verified 0-100 range)
+  - `Recommendations`: ✅ (Constructive strings generated correctly)
+  - `API_Response`: ✅ (JSON structure validated via automated test script)
+- **Debugging Notes**:
+  - *Word Boundaries*: Used `\b` in regex to ensure "Java" doesn't incorrectly match "JavaScript".
+  - *CORS Handling*: Confirmed the existing CORS policy in `app.py` allows the frontend to POST to the new endpoint.
 - **Date**: 2026-04-03
 - **Status**: Completed & Verified ✅

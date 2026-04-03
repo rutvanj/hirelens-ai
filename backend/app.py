@@ -4,6 +4,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from text_extractor import extract_text_from_pdf, extract_text_from_image
+from resume_analyzer import analyze_resume
 
 # Load environment variables
 load_dotenv()
@@ -62,6 +63,32 @@ def upload_file():
         })
     else:
         return jsonify({"status": "error", "message": "Invalid file type. Allowed: PDF, PNG, JPG"}), 400
+
+@app.route('/api/analyze', methods=['POST'])
+def analyze():
+    # 1. Parse JSON body
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"status": "error", "message": "Missing request body"}), 400
+        
+    resume_text = data.get('resume_text', '')
+    job_description = data.get('job_description', '')
+    
+    # 2. Basic Validation
+    if not resume_text:
+        return jsonify({"status": "error", "message": "Resume text is empty. Please upload a resume first."}), 400
+    if not job_description:
+        return jsonify({"status": "error", "message": "Job description is empty. Please provide one for matching."}), 400
+        
+    # 3. Perform Analysis
+    analysis_results = analyze_resume(resume_text, job_description)
+    
+    # 4. Return results
+    return jsonify({
+        "status": "success",
+        "results": analysis_results
+    })
 
 if __name__ == '__main__':
     # Default Flask port is 5000, user requested 10000
