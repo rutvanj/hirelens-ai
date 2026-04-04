@@ -1,259 +1,425 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  ScanSearch, Briefcase, Link as LinkIcon, Zap, Target, Cpu, 
-  Upload, MousePointer2, AlertCircle, CheckCircle2, TrendingUp, XCircle, Lightbulb, ChevronRight, Menu, X
+  CheckCircle2, 
+  X, 
+  ArrowRight, 
+  Eye, 
+  EyeOff, 
+  AlertCircle, 
+  Upload,
+  MousePointer2,
+  ChevronRight,
+  Info,
+  TrendingUp,
+  XCircle,
+  Lightbulb
 } from 'lucide-react'
-import { Button } from '../components/ui/Button'
-import { Card } from '../components/ui/Card'
-import { LoginModal } from '../components/LoginModal'
-import { ProductPreviewCard } from '../components/ProductPreviewCard'
+
+// --- Helper Components ---
+
+const Badge = ({ children }) => (
+  <span className="inline-flex items-center px-3 py-1 rounded-lg bg-[#F8DCE8] text-[#243447] text-[10px] font-bold tracking-widest uppercase mb-6 border border-[#E7DDE5]/50">
+    {children}
+  </span>
+)
+
+const Button = ({ children, variant = 'primary', className = '', onClick, type = 'button' }) => {
+  const baseStyles = "px-6 py-2.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm tracking-tight"
+  const variants = {
+    primary: "bg-[#5F9EA0] hover:bg-[#4F8789] text-white shadow-sm hover:shadow-md",
+    secondary: "bg-[#F8DCE8] hover:bg-[#f3c8da] text-[#243447]",
+    outline: "border border-[#E7DDE5] hover:border-[#5F9EA0] text-[#243447] hover:bg-white",
+    ghost: "text-[#6B7A8C] hover:text-[#243447] hover:bg-[#F8DCE8]/40"
+  }
+  
+  return (
+    <button type={type} onClick={onClick} className={`${baseStyles} ${variants[variant]} ${className}`}>
+      {children}
+    </button>
+  )
+}
+
+const Input = ({ label, type = 'text', value, onChange, placeholder, autoFocus }) => {
+  const [show, setShow] = useState(false)
+  const isPassword = type === 'password'
+  const inputType = isPassword ? (show ? 'text' : 'password') : type
+  
+  return (
+    <div className="space-y-2 w-full text-left">
+      {label && <label className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C] ml-1">{label}</label>}
+      <div className="relative">
+        <input
+          autoFocus={autoFocus}
+          type={inputType}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="w-full px-5 py-3 rounded-2xl border border-[#E7DDE5] focus:border-[#5F9EA0] outline-none transition-all text-sm text-[#243447] placeholder-[#6B7A8C]/30 bg-white"
+        />
+        {isPassword && (
+          <button 
+            type="button"
+            onClick={() => setShow(!show)}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7A8C] hover:text-[#243447]"
+          >
+            {show ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// --- Main Page Component ---
 
 export default function LandingPage() {
-  const [isLoginOpen, setIsLoginOpen] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  const navigate = useNavigate()
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [loginForm, setLoginForm] = useState({ email: '', password: '' })
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const scrollToSection = (id) => {
-    const element = document.getElementById(id)
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
-      setIsMenuOpen(false)
+  const openModal = (demo = false) => {
+    if (demo) {
+      setLoginForm({ email: 'demo@hirelens.app', password: 'hirelens123' })
+    } else {
+      setLoginForm({ email: '', password: '' })
     }
+    setIsModalOpen(true)
   }
 
-  return (
-    <div className="min-h-screen bg-brand-bg font-['Inter',sans-serif] text-brand-dark overflow-x-hidden">
-      
-      {/* 1. Navbar Section */}
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent ${
-          scrolled ? 'bg-brand-bg/80 backdrop-blur-md h-20 border-brand-border shadow-sm' : 'h-24'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center text-white shadow-lg">
-               <Cpu size={18} />
-            </div>
-            <span className="text-2xl font-bold tracking-tighter text-brand-dark">HireLens</span>
-          </div>
+  const closeModal = () => setIsModalOpen(false)
 
+  const handleLogin = (e) => {
+    e.preventDefault()
+    navigate('/analyze')
+  }
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') closeModal() }
+    window.addEventListener('keydown', handleEsc)
+    return () => window.removeEventListener('keydown', handleEsc)
+  }, [])
+
+  return (
+    <div className="min-h-screen bg-[#FFF7FB] text-[#243447] font-sans selection:bg-[#F8DCE8] selection:text-[#243447] flex flex-col overflow-x-hidden">
+      
+      {/* 1) NAVBAR */}
+      <nav className="sticky top-0 z-40 bg-[#FFF7FB]/90 backdrop-blur-md border-b border-[#E7DDE5]">
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+          <Link to="/" className="text-xl font-bold tracking-tight text-[#243447]">
+            HireLens
+          </Link>
+          
           <div className="hidden md:flex items-center gap-10">
-            {['Features', 'How it Works'].map((link) => (
-              <button 
-                key={link}
-                onClick={() => scrollToSection(link.toLowerCase().replace(/\s+/g, '-'))}
-                className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted hover:text-brand-blue transition-colors"
-              >
+            {['Features', 'How it Works'].map(link => (
+              <a key={link} href={`#${link.toLowerCase().replace(/\s+/g, '-')}`} className="text-xs font-bold uppercase tracking-widest text-[#6B7A8C] hover:text-[#243447] transition-colors">
                 {link}
-              </button>
+              </a>
             ))}
           </div>
-
-          <div className="hidden md:flex items-center gap-4">
-             <Button variant="ghost" className="h-11 px-6 px-12" onClick={() => setIsLoginOpen(true)}>Log in</Button>
-             <Button variant="primary" className="h-11 px-8 px-12" onClick={() => setIsLoginOpen(true)}>Try it free</Button>
+          
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => openModal()} className="hidden sm:flex px-4">Log in</Button>
+            <Button onClick={() => openModal()} className="px-5">Try it free</Button>
           </div>
-
-          <button className="md:hidden text-brand-dark" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
         </div>
       </nav>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMenuOpen && (
+      {/* 2) HERO SECTION */}
+      <section className="pt-20 pb-20 px-6">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           <motion.div 
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-x-0 top-20 z-40 bg-white p-6 border-b border-brand-border md:hidden"
+            transition={{ duration: 0.5 }}
+            className="text-left"
           >
-             <div className="flex flex-col gap-6">
-                {['Features', 'How it Works'].map((link) => (
-                  <button 
-                    key={link}
-                    onClick={() => scrollToSection(link.toLowerCase().replace(/\s+/g, '-'))}
-                    className="text-sm font-bold uppercase tracking-widest text-brand-dark text-left"
-                  >
-                    {link}
-                  </button>
-                ))}
-                <div className="flex flex-col gap-4 pt-4 border-t border-brand-border">
-                   <Button variant="outline" onClick={() => setIsLoginOpen(true)}>Log in</Button>
-                   <Button variant="primary" onClick={() => setIsLoginOpen(true)}>Try it free</Button>
-                </div>
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <main className="pt-32">
-        {/* 2. Hero Section */}
-        <section className="max-w-7xl mx-auto px-6 mb-32">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-pink border border-brand-border text-[9px] font-bold uppercase tracking-[0.2em] text-brand-dark mb-8">
-                Resume screening, simplified
+            <Badge>Resume screening, simplified</Badge>
+            <h1 className="text-4xl md:text-5xl font-bold leading-[1.1] mb-8 tracking-tighter text-[#6E8FA0]">
+              Review resumes faster, with clearer hiring insights
+            </h1>
+            <p className="text-lg text-[#6B7A8C] leading-relaxed mb-10 max-w-lg font-medium">
+              Upload a resume and compare it to a job description. Get a clear, grounded breakdown of candidate strengths and skill gaps.
+            </p>
+            
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap gap-4 items-center">
+                <Button onClick={() => openModal()} className="h-14 px-10 text-base">Try the demo</Button>
+                <Button variant="outline" className="h-14 px-10 text-base" onClick={() => navigate('/results')}>View sample report</Button>
               </div>
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-brand-heading leading-[0.95] mb-8">
-                 Review resumes faster, <br /> with clearer hiring insights
-              </h1>
-              <p className="text-lg md:text-xl text-brand-muted leading-relaxed font-medium mb-10 max-w-xl">
-                 Upload a resume and compare it to a job description. Get a clear, grounded breakdown of candidate strengths and skill gaps.
+              <p className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C]/50 ml-1">
+                Demo access available through the login popup.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-6">
-                 <Button variant="primary" className="h-14 px-10 text-base" onClick={() => setIsLoginOpen(true)}>Try the demo</Button>
-                 <Button variant="outline" className="h-14 px-10 text-base" onClick={() => setIsLoginOpen(true)}>View sample report</Button>
-              </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-muted/40">Demo access available through the login popup.</p>
-            </motion.div>
-
-            <div className="flex justify-center lg:justify-end">
-               <ProductPreviewCard />
             </div>
-          </div>
-        </section>
+          </motion.div>
 
-        {/* 3. Trust Strip Section */}
-        <section className="bg-white border-y border-brand-border py-12 mb-32">
-          <div className="max-w-7xl mx-auto px-6">
-             <div className="flex flex-wrap justify-between items-center gap-8 md:gap-12">
-                {[
-                  { icon: Upload, text: "Upload resumes" },
-                  { icon: MousePointer2, text: "Compare with job roles" },
-                  { icon: AlertCircle, text: "Spot missing skills" },
-                  { icon: CheckCircle2, text: "Get actionable suggestions" }
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-4 group">
-                     <div className="w-10 h-10 rounded-xl bg-brand-warm flex items-center justify-center text-brand-blue group-hover:bg-brand-blue group-hover:text-white transition-all transform group-hover:scale-110">
-                        <item.icon size={20} />
-                     </div>
-                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark">{item.text}</span>
-                  </div>
-                ))}
-             </div>
-          </div>
-        </section>
-
-        {/* 4. How it Works Section */}
-        <section id="how-it-works" className="bg-brand-warm py-32 mb-32 border-y border-brand-border">
-          <div className="max-w-7xl mx-auto px-6">
-             <div className="text-center mb-20">
-                <h2 className="text-4xl font-bold tracking-tighter text-brand-heading mb-4">How it works</h2>
-                <p className="text-brand-muted font-medium">A simple, grounded workflow for candidate review</p>
-             </div>
-
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[
-                  { step: "01", title: "Upload a resume", text: "Add a PDF or image resume to begin the evaluation." },
-                  { step: "02", title: "Add role details", text: "Paste the job description to compare the candidate profile." },
-                  { step: "03", title: "Review the report", text: "See match score, missing skills, and improvement areas." }
-                ].map((card, i) => (
-                  <Card key={i} delay={i * 0.1} hover={true} className="bg-white p-10 border-brand-border flex flex-col items-start shadow-sm">
-                     <div className="text-4xl font-black text-brand-pink/50 transition-colors group-hover:text-brand-blue mb-6">{card.step}</div>
-                     <h3 className="text-xl font-bold text-brand-dark mb-4">{card.title}</h3>
-                     <p className="text-brand-muted leading-relaxed font-medium">{card.text}</p>
-                  </Card>
-                ))}
-             </div>
-          </div>
-        </section>
-
-        {/* 5. Features Section */}
-        <section id="features" className="max-w-7xl mx-auto px-6 py-32 mb-32">
-           <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-20">
-              <div className="lg:max-w-xl">
-                 <h2 className="text-4xl font-bold tracking-tighter text-brand-heading mb-6">What's inside the report</h2>
-                 <p className="text-lg text-brand-muted font-medium">A clear breakdown of how the resume matches the role.</p>
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {[
-                { icon: TrendingUp, title: "Match score", text: "See how closely the profile aligns with the role requirements." },
-                { icon: XCircle, title: "Skill gaps", text: "Spot missing tools, technologies, and role-specific requirements." },
-                { icon: CheckCircle2, title: "Resume strengths", text: "Highlight areas where the candidate already fits well." },
-                { icon: Lightbulb, title: "Improvement suggestions", text: "Get practical suggestions to improve the resume before applying." }
-              ].map((feature, i) => (
-                <div key={i} className="group p-8 rounded-[2rem] border border-brand-border bg-white hover:border-brand-blue transition-all duration-300">
-                   <div className="w-14 h-14 rounded-2xl bg-brand-warm flex items-center justify-center text-brand-blue mb-8 group-hover:bg-brand-blue group-hover:text-white transition-all transform group-hover:rotate-6">
-                      <feature.icon size={24} />
-                   </div>
-                   <h3 className="text-xl font-bold text-brand-dark mb-3">{feature.title}</h3>
-                   <p className="text-brand-muted leading-relaxed font-medium">{feature.text}</p>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="relative"
+          >
+            {/* Realistic Product Preview Card */}
+            <div className="w-full max-w-md bg-white rounded-3xl p-10 border border-[#E7DDE5] shadow-[0_30px_80px_-15px_rgba(36,52,71,0.06)]">
+              <div className="flex items-center justify-between mb-10 border-b border-[#E7DDE5]/50 pb-8">
+                <div>
+                  <h3 className="text-base font-bold text-[#243447]">Software Engineer Report</h3>
+                  <p className="text-[10px] text-[#6B7A8C] uppercase tracking-widest font-bold mt-1.5 opacity-60">Candidate Evaluation</p>
                 </div>
-              ))}
-           </div>
-        </section>
-
-        {/* 6. CTA Section */}
-        <section className="bg-brand-warm border-y border-brand-border py-40">
-           <div className="max-w-3xl mx-auto px-6 text-center">
-              <h2 className="text-4xl sm:text-5xl font-bold tracking-tighter text-brand-dark mb-8">Ready to try it?</h2>
-              <p className="text-xl text-brand-muted font-medium mb-12">See how HireLens helps review resumes against real job requirements.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                 <Button variant="primary" className="h-14 px-12 text-base" onClick={() => setIsLoginOpen(true)}>Start analysis</Button>
-                 <Button variant="outline" className="h-14 px-12 text-base" onClick={() => setIsLoginOpen(true)}>Log in</Button>
+                <div className="flex flex-col items-end">
+                   <div className="text-4xl font-bold text-[#5F9EA0] tracking-tighter">82<span className="text-sm text-[#6B7A8C]/30 font-bold tracking-normal ml-0.5">/100</span></div>
+                   <div className="text-[9px] font-bold text-[#5F9EA0] uppercase tracking-widest mt-1">Match Score</div>
+                </div>
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-muted group-hover:text-brand-dark mt-8 transition-colors">Demo access is available through the login popup.</p>
-           </div>
-        </section>
 
-      </main>
-
-      {/* 7. Footer Section */}
-      <footer className="bg-white border-t border-brand-border pt-32 pb-20">
-         <div className="max-w-7xl mx-auto px-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-24">
-               <div className="md:col-span-2">
-                  <div className="flex items-center gap-2 mb-6">
-                     <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center text-white">
-                        <Cpu size={18} />
-                     </div>
-                     <span className="text-2xl font-bold tracking-tighter text-brand-dark">HireLens</span>
+              <div className="space-y-8">
+                <div className="grid grid-cols-2 gap-8">
+                  <div>
+                    <label className="text-[9px] font-bold text-[#6B7A8C] uppercase tracking-[0.2em] block mb-3">Matched Skills</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['React', 'TypeScript'].map(skill => (
+                        <span key={skill} className="px-3 py-1.5 rounded-lg bg-[#DCEFE8] text-[#243447] text-[10px] font-bold border border-[#E7DDE5]/50">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-brand-muted font-medium max-w-sm">A modern, grounded tool for resume screening and candidate evaluation.</p>
-               </div>
-               
-               <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark mb-8">Product</h4>
-                  <ul className="space-y-4">
-                     {['Features', 'Workflow'].map(link => (
-                        <li key={link}><button onClick={() => scrollToSection(link.toLowerCase().replace(/\s+/g, '-'))} className="text-sm font-medium text-brand-muted hover:text-brand-blue transition-colors">{link}</button></li>
-                     ))}
-                  </ul>
-               </div>
+                  <div>
+                    <label className="text-[9px] font-bold text-[#6B7A8C] uppercase tracking-[0.2em] block mb-3">Missing Skills</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['AWS', 'GraphQL'].map(skill => (
+                        <span key={skill} className="px-3 py-1.5 rounded-lg bg-[#F3DDE2] text-[#243447] text-[10px] font-bold border border-[#E7DDE5]/50">
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
 
-               <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark mb-8">Account</h4>
-                  <ul className="space-y-4">
-                     <li><button onClick={() => setIsLoginOpen(true)} className="text-sm font-medium text-brand-muted hover:text-brand-blue transition-colors">Log in</button></li>
-                  </ul>
-               </div>
+                <div className="p-5 rounded-2xl bg-[#FAF6F2] border border-[#E7DDE5]">
+                  <p className="text-[10px] text-[#6B7A8C] uppercase tracking-widest font-bold mb-2">Summary</p>
+                  <p className="text-[12px] text-[#243447] leading-relaxed font-semibold italic">
+                    "Candidate shows strong frontend alignment but lacks specific cloud infrastructure experience mentioned in the role."
+                  </p>
+                </div>
+                
+                <div className="text-[10px] text-[#6B7A8C]/40 font-medium text-center italic">
+                  Generated from resume + role description
+                </div>
+              </div>
             </div>
+            
+            {/* Subtle decorative tone */}
+            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#DCEBED] rounded-full blur-[100px] -z-10 opacity-60" />
+          </motion.div>
+        </div>
+      </section>
 
-            <div className="text-center pt-12 border-t border-brand-border">
-               <p className="text-[10px] font-bold uppercase tracking-[0.5em] text-brand-muted group-hover:text-brand-dark transition-colors">HireLens 2026 &bull; Designed for People</p>
+      {/* 3) TRUST / VALUE STRIP */}
+      <section className="bg-white border-y border-[#E7DDE5] py-12 px-6">
+        <div className="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-10">
+          {[
+            { icon: <Upload size={16} />, text: "Upload resumes" },
+            { icon: <MousePointer2 size={16} />, text: "Compare with job roles" },
+            { icon: <AlertCircle size={16} />, text: "Spot missing skills" },
+            { icon: <CheckCircle2 size={16} />, text: "Get actionable suggestions" }
+          ].map((item, i) => (
+            <div key={i} className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-[#FAF6F2] border border-[#E7DDE5]/50 flex items-center justify-center text-[#5F9EA0]">
+                {item.icon}
+              </div>
+              <span className="text-[12px] font-bold uppercase tracking-widest text-[#243447]">{item.text}</span>
             </div>
-         </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 4) HOW IT WORKS */}
+      <section id="how-it-works" className="py-24 px-6 bg-[#FAF6F2]">
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          <h2 className="text-4xl font-bold mb-5 tracking-tight text-[#6E8FA0]">How it works</h2>
+          <p className="text-[#6B7A8C] text-lg font-medium">A simple, grounded workflow for candidate review</p>
+        </div>
+        
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            { title: 'Upload a resume', text: 'Add a PDF or image resume to begin the evaluation.' },
+            { title: 'Add role details', text: 'Paste the job description to compare the candidate profile.' },
+            { title: 'Review the report', text: 'See match score, missing skills, and improvement areas.' }
+          ].map((step, i) => (
+            <div key={i} className="bg-white p-10 rounded-3xl border border-[#E7DDE5] shadow-sm relative group">
+              <div className="text-xl font-bold text-[#F8DCE8] mb-6 opacity-80 group-hover:text-[#5F9EA0] transition-colors duration-500">
+                0{i + 1}
+              </div>
+              <h3 className="text-xl font-bold mb-4 tracking-tight">{step.title}</h3>
+              <p className="text-sm text-[#6B7A8C] leading-relaxed font-medium">{step.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 5) WHAT'S INSIDE THE REPORT */}
+      <section id="features" className="py-24 px-6 bg-white">
+        <div className="max-w-4xl mx-auto text-center mb-16">
+          <h2 className="text-4xl font-bold mb-5 tracking-tight text-[#6E8FA0]">What's inside the report</h2>
+          <p className="text-[#6B7A8C] text-lg font-medium">A clear breakdown of how the resume matches the role.</p>
+        </div>
+        
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[
+            { 
+              title: 'Match score', 
+              text: 'See how closely the profile aligns with the role requirements.',
+              icon: <TrendingUp size={20} />
+            },
+            { 
+              title: 'Skill gaps', 
+              text: 'Spot missing tools, technologies, and role-specific requirements.',
+              icon: <XCircle size={20} />
+            },
+            { 
+              title: 'Resume strengths', 
+              text: 'Highlight areas where the candidate already fits well.',
+              icon: <CheckCircle2 size={20} />
+            },
+            { 
+              title: 'Improvement suggestions', 
+              text: 'Get practical suggestions to improve the resume before applying.',
+              icon: <Lightbulb size={20} />
+            }
+          ].map((feature, i) => (
+            <div key={i} className="p-8 rounded-2xl border border-[#E7DDE5] hover:border-[#5F9EA0]/30 bg-white transition-all duration-300 flex items-start gap-6 group shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-[#FAF6F2] border border-[#E7DDE5] flex items-center justify-center text-[#5F9EA0] shrink-0 group-hover:bg-[#5F9EA0] group-hover:text-white transition-all">
+                {feature.icon}
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2 tracking-tight">{feature.title}</h3>
+                <p className="text-[#6B7A8C] leading-relaxed font-medium text-sm">{feature.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 6) FINAL CTA SECTION */}
+      <section className="py-24 px-6 bg-[#FAF6F2] border-t border-[#E7DDE5]">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl font-bold mb-4 tracking-tight text-[#243447]">Ready to try it?</h2>
+          <p className="text-[#6B7A8C] text-lg font-medium mb-10">See how HireLens helps review resumes against real job requirements.</p>
+          
+          <div className="flex flex-col gap-4 items-center">
+            <div className="flex flex-wrap gap-4 justify-center">
+              <Button onClick={() => openModal(true)} className="h-14 px-10 text-base">Start analysis</Button>
+              <Button variant="outline" className="h-14 px-10 text-base" onClick={() => openModal()}>Log in</Button>
+            </div>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C]/50">
+              Demo access is available through the login popup.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 7) FOOTER */}
+      <footer className="py-20 px-6 border-t border-[#E7DDE5] bg-white mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-16">
+          <div className="space-y-5">
+            <div className="text-2xl font-bold tracking-tight text-[#243447]">HireLens</div>
+            <p className="text-sm text-[#6B7A8C] max-w-xs font-medium leading-relaxed">A modern, grounded tool for resume screening and candidate evaluation.</p>
+          </div>
+          
+          <div className="flex flex-wrap gap-x-20 gap-y-10">
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-bold text-[#243447] uppercase tracking-widest">Product</span>
+              <a href="#features" className="text-xs font-bold text-[#6B7A8C] hover:text-[#243447] uppercase tracking-widest transition-colors">Features</a>
+              <a href="#how-it-works" className="text-xs font-bold text-[#6B7A8C] hover:text-[#243447] uppercase tracking-widest transition-colors">Workflow</a>
+            </div>
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-bold text-[#243447] uppercase tracking-widest">Account</span>
+              <button onClick={() => openModal()} className="text-xs font-bold text-[#6B7A8C] hover:text-[#243447] text-left uppercase tracking-widest transition-colors">Log in</button>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto mt-20 pt-10 border-t border-[#E7DDE5] text-center">
+          <p className="text-[10px] font-bold text-[#6B7A8C]/20 uppercase tracking-[0.6em] select-none">HireLens 2026 &bull; Designed for People</p>
+        </div>
       </footer>
 
-      {/* 8. Login Modal */}
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
+      {/* 8) LOGIN POPUP MODAL */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeModal}
+              className="absolute inset-0 bg-[#243447]/20 backdrop-blur-[2px]"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.98, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              transition={{ type: "spring", damping: 30, stiffness: 400 }}
+              className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-[0_40px_80px_-15px_rgba(36,52,71,0.15)] border border-[#E7DDE5] p-12 z-10"
+            >
+              <button 
+                onClick={closeModal}
+                className="absolute top-8 right-8 p-2 rounded-full text-[#6B7A8C]/40 hover:bg-[#FAF6F2] hover:text-[#243447] transition-all"
+              >
+                <X size={20} />
+              </button>
+
+              <div className="text-center mb-10">
+                <h2 className="text-2xl font-bold mb-3 tracking-tighter text-[#243447]">Welcome back</h2>
+                <p className="text-sm font-medium text-[#6B7A8C]">Sign in to continue to HireLens</p>
+              </div>
+
+              <form onSubmit={handleLogin} className="space-y-6">
+                <Input 
+                  autoFocus
+                  label="Email address"
+                  placeholder="name@company.com"
+                  value={loginForm.email}
+                  onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                />
+                
+                <Input 
+                  label="Password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                />
+
+                <div className="pt-4 flex flex-col gap-4">
+                  <Button type="submit" className="w-full h-14 text-base">Log in</Button>
+                  <Button 
+                    variant="secondary" 
+                    className="w-full h-14 text-base" 
+                    onClick={() => {
+                      setLoginForm({ email: 'demo@hirelens.app', password: 'hirelens123' })
+                    }}
+                  >
+                    Use demo credentials
+                  </Button>
+                </div>
+
+                <div className="pt-8 border-t border-[#E7DDE5] text-center">
+                   <button 
+                    type="button"
+                    onClick={() => navigate('/analyze')}
+                    className="text-[11px] font-bold text-[#5F9EA0] hover:text-[#4F8789] transition-colors uppercase tracking-widest"
+                   >
+                     Continue without login
+                   </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   )

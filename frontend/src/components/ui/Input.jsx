@@ -1,28 +1,32 @@
+import React from 'react'
+
 export const Input = ({ 
   label, 
-  placeholder, 
   value, 
   onChange, 
+  placeholder = '', 
   type = 'text', 
-  className = '', 
-  name,
-  required = false
+  name, 
+  required = false, 
+  className = '',
+  autoFocus = false
 }) => {
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
+    <div className={`space-y-2 w-full text-left ${className}`}>
       {label && (
-        <span className="text-xs font-bold uppercase tracking-widest text-brand-blue/80 ml-1">
+        <label className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C] ml-1">
           {label}
-        </span>
+        </label>
       )}
       <input
+        autoFocus={autoFocus}
         type={type}
         name={name}
+        required={required}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        required={required}
-        className="w-full bg-brand-warm border border-brand-border rounded-xl px-4 py-3 text-brand-dark placeholder-brand-muted/50 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200 shadow-sm"
+        className="w-full px-5 py-3 rounded-2xl border border-[#E7DDE5] focus:border-[#5F9EA0] outline-none transition-all text-sm text-[#243447] placeholder-[#6B7A8C]/30 bg-white"
       />
     </div>
   )
@@ -30,29 +34,29 @@ export const Input = ({
 
 export const Textarea = ({ 
   label, 
-  placeholder, 
   value, 
   onChange, 
-  className = '', 
-  name,
-  required = false,
-  rows = 4
+  placeholder = '', 
+  rows = 4, 
+  name, 
+  required = false, 
+  className = '' 
 }) => {
   return (
-    <div className={`flex flex-col gap-2 ${className}`}>
+    <div className={`space-y-2 w-full text-left ${className}`}>
       {label && (
-        <span className="text-xs font-bold uppercase tracking-widest text-brand-blue/80 ml-1">
+        <label className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C] ml-1">
           {label}
-        </span>
+        </label>
       )}
       <textarea
         name={name}
+        required={required}
+        rows={rows}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        required={required}
-        rows={rows}
-        className="w-full bg-brand-warm border border-brand-border rounded-xl px-4 py-3 text-brand-dark placeholder-brand-muted/50 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200 resize-none md:max-h-60 shadow-sm"
+        className="w-full px-5 py-4 rounded-2xl border border-[#E7DDE5] focus:border-[#5F9EA0] outline-none transition-all text-sm text-[#243447] placeholder-[#6B7A8C]/30 bg-white resize-none"
       />
     </div>
   )

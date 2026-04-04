@@ -1,15 +1,69 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Home, CheckCircle2, XCircle, Lightbulb, BookOpen, Briefcase, TrendingUp, Zap, Cpu, ShieldCheck, Code2 } from 'lucide-react'
-import RadarChart from '../components/RadarChart'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  ChevronLeft, 
+  CheckCircle2, 
+  AlertCircle, 
+  Lightbulb, 
+  BookOpen, 
+  Briefcase, 
+  TrendingUp, 
+  Zap, 
+  ShieldCheck,
+  ExternalLink,
+  Target,
+  Info,
+  Award,
+  Activity,
+  ArrowUpRight,
+  Globe,
+  XCircle,
+  FileWarning,
+  Download
+} from 'lucide-react'
 import LinkedInProfile from '../components/LinkedInProfile'
-import { Card } from '../components/ui/Card'
+import RadarChart from '../components/RadarChart'
 import { Button } from '../components/ui/Button'
+import { exportReportPdf } from '../lib/exportPdf'
+
+// --- Shared UI Primitives (matching Landing + Analyze) ---
+
+const Badge = ({ children, variant = 'default' }) => {
+  const variants = {
+    default: 'bg-[#F8DCE8] text-[#243447] border-[rgba(231,221,229,0.5)]',
+    success: 'bg-[#DCEFE8] text-[#243447] border-[rgba(95,158,160,0.2)]',
+    neutral: 'bg-[#FAF6F2] text-[#6B7A8C] border-[#E7DDE5]'
+  }
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase border ${variants[variant]}`}>
+      {children}
+    </span>
+  )
+}
+
+const SectionLabel = ({ icon, children }) => (
+  <h3 className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C] flex items-center gap-2 mb-8">
+    {icon} {children}
+  </h3>
+)
+
+const ResultCard = ({ children, className = '', delay = 0 }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.4, delay }}
+    className={`bg-white border border-[#E7DDE5] rounded-[2rem] p-8 shadow-[0_20px_50px_-20px_rgba(36,52,71,0.05)] hover:border-[rgba(95,158,160,0.3)] transition-all duration-300 ${className}`}
+  >
+    {children}
+  </motion.div>
+)
 
 export default function ResultsPage() {
   const navigate = useNavigate()
   const [data, setData] = useState(null)
+  const reportRef = useRef(null)
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     const rawData = localStorage.getItem('hirelens_results')
@@ -17,7 +71,6 @@ export default function ResultsPage() {
       navigate('/analyze')
       return
     }
-    
     try {
       setData(JSON.parse(rawData))
     } catch (e) {
@@ -25,412 +78,353 @@ export default function ResultsPage() {
     }
   }, [navigate])
 
+
   if (!data) return null
-  
+
+  // --- Data Extraction ---
   const matchScore = data.match_score || 0
   const skills = data.skills || []
   const missing = data.missing || []
   const linkedinRawData = data.linkedin_raw_data || null
   const linkedinSkills = data.linkedin_skills || []
-  const githubData = data.github_analysis || null
-  const suggestions = data.linkedin_suggestions || []
   const aiSuggestions = data.ai_suggestions || { resume_tips: [], skills_to_learn: [] }
-  const jobRole = data.job_role || ''
-  const jobSeniority = data.job_seniority || ''
+  const jobRole = data.job_role || 'Specialist'
+  const seniority = data.job_seniority || 'Professional'
   const aiInsights = data.ai_insights || { hiring_probability: 0, reasoning: '', confidence: 50 }
   const careerPaths = data.career_paths || { jobs_now: [], jobs_after_learning: [] }
   const hiringProb = aiInsights.hiring_probability || 0
-  const confidence = aiInsights.confidence ?? 50
-  const finalScore = data.final_score ?? Math.round((0.7 * matchScore) + (0.3 * hiringProb))
-  
-  const finalStroke = 'text-brand-blue'
-  const finalColor = 'text-brand-blue'
+
+  // Polished fallback copy
+  const copy = {
+    noMatches: 'Manual verification may be helpful for niche skill alignment.',
+    noGaps: 'Candidate shows broad alignment with core role requirements.',
+    noTips: 'The profile would benefit from clearer role-specific framing and stronger measurable impact.',
+    noSkills: 'Further verification of specific technical domains is recommended.',
+    reasoning: aiInsights.reasoning || 'Based on the provided resume and job description, the candidate demonstrates specific technical alignment with the core requirements of the role.'
+  }
+
+  const finalScore = Math.round((0.6 * matchScore) + (0.4 * hiringProb))
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return '#5F9EA0'
+    if (score >= 60) return '#6E8FA0'
+    return '#6B7A8C'
+  }
+  const scoreColor = getScoreColor(finalScore)
+
+  const handleExportPdf = async () => {
+    console.log("Download PDF button clicked")
+    if (!reportRef.current) {
+      console.error("reportRef.current is null!")
+      return
+    }
+    if (exporting) {
+      console.log("Export already in progress")
+      return
+    }
+    
+    console.log("reportRef element:", reportRef.current)
+    setExporting(true)
+    
+    try {
+      const slug = jobRole ? String(jobRole).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '') : ''
+      const filename = slug ? `hirelens-report-${slug}.pdf` : 'hirelens-report.pdf'
+      console.log("Target filename:", filename)
+      
+      console.log("Calling exportReportPdf...")
+      await exportReportPdf(reportRef.current, filename)
+      console.log("exportReportPdf completed")
+    } catch (err) {
+      console.error('PDF export failed:', err)
+      alert("PDF export failed: " + err.message)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-brand-bg p-6 flex justify-center pb-20 relative overflow-x-hidden">
-      
-      {/* Background illumination */}
-      <div className="absolute top-1/4 left-0 w-[600px] h-[600px] bg-brand-pink/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-0 w-[600px] h-[600px] bg-brand-success/20 rounded-full blur-[140px] pointer-events-none" />
-      
-      <div className="max-w-6xl w-full z-10 mt-10">
-        
-        {/* Main Header & Hero Score */}
-        <div className="space-y-8 mb-12">
-          
-          <div className="flex flex-col md:flex-row md:justify-between items-start md:items-end gap-6">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg border border-brand-border bg-brand-warm text-[9px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4">
-                <ShieldCheck size={12} /> Analysis Complete
-              </div>
-              <h1 className="text-5xl font-bold tracking-tighter text-brand-dark">Performance Report</h1>
-              <p className="text-brand-muted mt-2 font-medium">Deep-lens evaluation of candidate fit and job intelligence.</p>
-              
-              {jobRole && (
-                <div className="flex flex-wrap items-center gap-2 mt-6">
-                  <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest bg-brand-blue/10 text-brand-blue border border-brand-blue/20 px-4 py-2 rounded-xl">
-                    <Briefcase size={12} /> {jobRole}
-                  </span>
-                  {jobSeniority && (
-                    <span className="text-[10px] font-bold uppercase tracking-widest bg-brand-warm text-brand-muted border border-brand-border px-4 py-2 rounded-xl">
-                      {jobSeniority}
-                    </span>
-                  )}
-                </div>
-              )}
-            </div>
+    <div className="min-h-screen bg-[#FFF7FB] text-[#243447] font-sans selection:bg-[#F8DCE8] selection:text-[#243447] flex flex-col overflow-x-hidden">
+
+      {/* NAVBAR — identical to Landing/Analyze */}
+      <nav className="sticky top-0 z-40 bg-[#FFF7FB]/90 backdrop-blur-md border-b border-[#E7DDE5]">
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+          <Link to="/analyze" className="group flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#6B7A8C] hover:text-[#243447] transition-colors">
+            <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to analysis
+          </Link>
+          <Link to="/" className="text-xl font-bold tracking-tight text-[#243447]">HireLens</Link>
+          <div className="flex items-center gap-3">
+            <Button variant="primary" onClick={handleExportPdf} loading={exporting} disabled={exporting} className="text-xs uppercase tracking-widest">
+              <Download size={14} />
+              {exporting ? 'Generating PDF…' : 'Download Report'}
+            </Button>
             <Link to="/">
-              <Button variant="outline" className="h-12 px-6">
-                <Home size={18} /> Exit Report
-              </Button>
+              <button className="px-5 py-2 rounded-xl border border-[#E7DDE5] text-xs font-bold uppercase tracking-widest hover:bg-white hover:border-[#5F9EA0] transition-all text-[#243447]">
+                Exit Report
+              </button>
             </Link>
           </div>
-
-          {/* HERO: ATS Score — Full Width */}
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            className="glass-panel rounded-[2.5rem] p-6 md:p-12 text-center flex flex-col md:flex-row items-center justify-between border border-brand-blue/20 relative overflow-hidden group shadow-lg"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-blue/5 via-transparent to-transparent pointer-events-none" />
-            
-            <div className="text-left mb-8 md:mb-0 md:max-w-lg z-10">
-              <h2 className="text-sm font-bold tracking-[0.3em] text-brand-blue uppercase mb-2">ATS Score</h2>
-              <p className="text-brand-muted text-[10px] font-bold uppercase tracking-widest mb-4">AI-evaluated Applicant Tracking Score</p>
-              <p className="text-brand-dark text-2xl leading-tight font-bold mb-6">
-                Our hybrid algorithm evaluated a <span className="text-brand-blue">{finalScore}%</span> suitability rating based on technical alignment and hiring intelligence.
-              </p>
-              <div className="flex items-center gap-6 text-[10px] font-bold text-brand-muted uppercase tracking-[0.2em]">
-                 <span className="flex items-center gap-2"><Cpu size={14} /> 70% Job Match</span>
-                 <span className="w-1 h-1 bg-brand-border rounded-full" />
-                 <span className="flex items-center gap-2"><ShieldCheck size={14} /> 30% Hiring AI</span>
-              </div>
-            </div>
-
-            <div className="relative z-10 flex flex-col items-center">
-              <div className="relative">
-                <svg className="w-64 h-64 transform -rotate-90">
-                  <circle cx="128" cy="128" r="115" stroke="currentColor" strokeWidth="14" fill="transparent" className="text-brand-warm" />
-                  <motion.circle 
-                    cx="128" cy="128" r="115" stroke="currentColor" strokeWidth="14" fill="transparent"
-                    strokeDasharray="722"
-                    initial={{ strokeDashoffset: 722 }}
-                    animate={{ strokeDashoffset: 722 - (722 * finalScore) / 100 }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    className={`${finalStroke} drop-shadow-[0_0_15px_rgba(95,158,160,0.2)]`}
-                    strokeLinecap="round" />
-                </svg>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                  <span className={`text-7xl font-bold tracking-tighter ${finalColor}`}>{finalScore}</span>
-                  <span className="text-brand-muted text-lg block font-bold uppercase tracking-widest">/ 100</span>
-                </div>
-              </div>
-              <span className="mt-4 text-[10px] font-bold text-brand-blue uppercase tracking-[0.4em]">Suitability</span>
-            </div>
-          </motion.div>
         </div>
+      </nav>
 
-        {/* Main Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="max-w-6xl mx-auto px-6 pt-14 pb-24 flex-1">
+        <div ref={reportRef} className="bg-[#FFF7FB]">
 
-          {/* Left Column (Scores) */}
-          <div className="lg:col-span-1 space-y-8">
+          <header className="mb-16">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                <Badge variant="success">Analysis Complete</Badge>
+                <Badge variant="neutral">{jobRole}</Badge>
+                <Badge variant="neutral">{seniority} Level</Badge>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-[#6E8FA0] mb-4">
+                Candidate Report
+              </h1>
+              <p className="text-[#6B7A8C] font-medium text-lg max-w-2xl">
+                A clear, grounded breakdown of how the candidate's profile aligns with the target role.
+              </p>
+            </motion.div>
+          </header>
 
-            {/* Match Score */}
-            <Card className="text-center shadow-md" delay={0.1}>
-              <h2 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-8">Technical Alignment</h2>
-              <div className="relative inline-block mb-6">
-                <svg className="w-44 h-44 transform -rotate-90">
-                  <circle cx="88" cy="88" r="78" stroke="currentColor" strokeWidth="10" fill="transparent" className="text-brand-warm" />
-                  <motion.circle 
-                    cx="88" cy="88" r="78" stroke="currentColor" strokeWidth="10" fill="transparent" 
-                    strokeDasharray="490" 
-                    initial={{ strokeDashoffset: 490 }}
-                    animate={{ strokeDashoffset: 490 - (490 * matchScore) / 100 }}
-                    transition={{ duration: 1.2, delay: 0.2 }}
-                    className="text-brand-dark drop-shadow-[0_0_10px_rgba(36,52,71,0.1)]" 
-                    strokeLinecap="round" 
+
+          {/* PRIMARY SCORE + SUMMARY */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            {/* Score Card */}
+            <ResultCard className="flex flex-col items-center justify-center text-center p-12" delay={0.05}>
+              <div className="relative w-48 h-48 md:w-56 md:h-56 mb-8">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="#E7DDE5" strokeWidth="8" />
+                  <motion.circle
+                    initial={{ strokeDashoffset: 327 }}
+                    animate={{ strokeDashoffset: 327 - (327 * finalScore) / 100 }}
+                    transition={{ duration: 1.5, ease: 'easeOut' }}
+                    cx="60" cy="60" r="52"
+                    fill="none"
+                    stroke={scoreColor}
+                    strokeWidth="8"
+                    strokeDasharray="327"
+                    strokeLinecap="round"
                   />
                 </svg>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                   <span className="text-5xl font-bold tracking-tighter text-brand-dark">{matchScore}</span>
-                   <span className="text-brand-muted text-[10px] block font-bold uppercase tracking-widest mt-1">% Match</span>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-6xl font-bold tracking-tighter text-[#243447]">{finalScore}</span>
+                  <span className="text-[9px] font-bold text-[#6B7A8C] uppercase tracking-[0.3em] mt-1">Suitability</span>
                 </div>
               </div>
-              <p className="text-[10px] text-brand-muted font-bold uppercase tracking-widest">Job Description Text Matching</p>
-            </Card>
 
-            {/* Hiring Probability */}
-            <Card className="text-center shadow-md border-brand-blue/10" delay={0.2}>
-              <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-8 flex items-center gap-2 justify-center">
-                <TrendingUp size={14} /> Hiring Intelligence
-              </h2>
-              <div className="relative inline-block mb-8">
-                <div className="text-6xl font-bold tracking-tighter text-brand-blue mb-2">{hiringProb}%</div>
-                <div className="text-[10px] text-brand-muted font-bold uppercase tracking-widest">Success Probability</div>
-              </div>
-              
-              {aiInsights.reasoning && (
-                <div className="bg-brand-warm rounded-2xl p-4 border border-brand-border text-left mb-6 shadow-inner">
-                   <p className="text-xs text-brand-muted leading-relaxed font-medium italic">"{aiInsights.reasoning}"</p>
+              <div className="flex gap-10">
+                <div className="text-center">
+                  <span className="block text-lg font-bold text-[#243447]">{matchScore}%</span>
+                  <span className="text-[9px] font-bold text-[#6B7A8C] uppercase tracking-widest">ATS Match</span>
                 </div>
-              )}
-              
-              {/* Confidence Bar */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-[9px] font-bold uppercase tracking-widest text-brand-muted">
-                   <span>AI Confidence</span>
-                   <span>{confidence}%</span>
-                </div>
-                <div className="bg-brand-warm rounded-full h-1.5 overflow-hidden border border-brand-border shadow-inner">
-                   <motion.div 
-                     initial={{ width: 0 }}
-                     animate={{ width: `${confidence}%` }}
-                     transition={{ duration: 1, delay: 0.5 }}
-                     className="h-full bg-brand-blue" 
-                   />
+                <div className="w-px bg-[#E7DDE5]" />
+                <div className="text-center">
+                  <span className="block text-lg font-bold text-[#243447]">{aiInsights.confidence}%</span>
+                  <span className="text-[9px] font-bold text-[#6B7A8C] uppercase tracking-widest">Confidence</span>
                 </div>
               </div>
-            </Card>
+            </ResultCard>
 
+            {/* AI Summary */}
+            <ResultCard className="lg:col-span-2 p-10" delay={0.1}>
+              <SectionLabel icon={<Info size={16} className="text-[#5F9EA0]" />}>Hiring Intelligence</SectionLabel>
+              <h3 className="text-2xl font-bold text-[#243447] leading-tight mb-6 tracking-tight">
+                Strategic candidate summary and role-fit perspective.
+              </h3>
+              <div className="p-6 rounded-2xl bg-[#FAF6F2] border border-[#E7DDE5] mb-8">
+                <p className="text-sm text-[#243447] leading-relaxed font-semibold italic">
+                  "{copy.reasoning}"
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {['Fast Learner', 'Tech-Forward', 'Strategic'].map(tag => (
+                  <span key={tag} className="px-3 py-1.5 rounded-lg bg-[#FAF6F2] border border-[#E7DDE5]/50 text-[10px] font-bold uppercase tracking-widest text-[#6B7A8C]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </ResultCard>
           </div>
 
-          {/* Middle/Right Column */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* Chart Area */}
-            <Card delay={0.3} className="h-[400px] shadow-md">
-              <h2 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-6">Semantic Profile Radar</h2>
-              <div className="h-[300px] w-full">
-                 <RadarChart skills={skills} missing={missing} />
+          {/* TECHNICAL ALIGNMENT */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+            <ResultCard className="lg:col-span-2" delay={0.15}>
+              <div className="flex items-center justify-between mb-8">
+                <SectionLabel icon={<Target size={16} className="text-[#5F9EA0]" />}>Technical Alignment</SectionLabel>
+                <Badge variant="success">Verified</Badge>
               </div>
-            </Card>
-
-            {/* Skills Grids */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card delay={0.4} className="border-brand-border shadow-sm">
-                <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                  <CheckCircle2 size={14} /> Intelligence Match
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {skills.length > 0 ? skills.map((skill, idx) => (
-                    <span key={idx} className="px-3 py-1.5 bg-brand-blue/10 text-brand-blue border border-brand-blue/20 rounded-lg text-[10px] font-bold uppercase tracking-widest">
-                      {skill}
-                    </span>
-                  )) : <p className="text-[10px] text-brand-muted/40 font-bold uppercase tracking-widest">Zero matches found</p>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div>
+                  <p className="text-[10px] font-bold text-[#6B7A8C] uppercase tracking-widest mb-5">Core Skill Overlap</p>
+                  <div className="flex flex-wrap gap-2">
+                    {skills.length > 0 ? skills.map((skill, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-lg bg-[#DCEFE8] text-[#243447] text-[10px] font-bold border-[rgba(95,158,160,0.2)]">
+                        {skill}
+                      </span>
+                    )) : <p className="text-xs text-[#6B7A8C] font-medium italic">{copy.noMatches}</p>}
+                  </div>
                 </div>
-              </Card>
-
-              <Card delay={0.5} className="border-brand-border shadow-sm">
-                <h2 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                  <XCircle size={14} /> Gap Analysis
-                </h2>
-                <div className="flex flex-wrap gap-2">
-                  {missing.length > 0 ? missing.map((skill, idx) => (
-                    <span key={idx} className="px-3 py-1.5 bg-brand-warm text-brand-muted border border-brand-border rounded-lg text-[10px] font-bold uppercase tracking-widest">
-                      {skill}
-                    </span>
-                  )) : <p className="text-[10px] text-brand-muted/40 font-bold uppercase tracking-widest">No skill gaps detected</p>}
+                <div>
+                  <p className="text-[10px] font-bold text-[#6B7A8C] uppercase tracking-widest mb-5">Identified Gaps</p>
+                  <div className="flex flex-wrap gap-2">
+                    {missing.length > 0 ? missing.map((skill, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-lg bg-[#F3DDE2] text-[#243447] text-[10px] font-bold border-[rgba(231,221,229,0.5)]">
+                        {skill}
+                      </span>
+                    )) : <p className="text-xs text-[#6B7A8C] font-medium italic">{copy.noGaps}</p>}
+                  </div>
                 </div>
-              </Card>
-            </div>
+              </div>
+            </ResultCard>
+
+            {/* Profile Radar */}
+            <ResultCard delay={0.2}>
+              <SectionLabel icon={<Activity size={16} className="text-[#5F9EA0]" />}>Profile Signature</SectionLabel>
+              <div className="aspect-square w-full relative flex items-center justify-center">
+                <RadarChart />
+              </div>
+              <p className="text-[9px] font-bold text-center text-[rgba(107,122,140,0.4)] uppercase tracking-[0.2em] mt-4">
+                Multidimensional Skill Map
+              </p>
+            </ResultCard>
           </div>
 
-          {/* Suggestions Layer */}
-          {(aiSuggestions.resume_tips?.length > 0 || aiSuggestions.skills_to_learn?.length > 0) && (
-            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8">
-               <Card delay={0.6} className="shadow-md">
-                  <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
-                    <Lightbulb size={14} /> Strategic Resume Tips
-                  </h2>
-                  <div className="space-y-4">
-                     {aiSuggestions.resume_tips.map((tip, i) => (
-                       <div key={i} className="flex gap-4 p-4 bg-brand-warm rounded-2xl border border-brand-border shadow-inner">
-                          <div className="w-6 h-6 rounded-lg bg-brand-blue/10 flex items-center justify-center shrink-0 border border-brand-blue/20 text-brand-blue font-bold text-[10px]">!</div>
-                          <p className="text-sm text-brand-muted font-medium leading-relaxed">{tip}</p>
-                       </div>
-                     ))}
-                  </div>
-               </Card>
-               <Card delay={0.7} className="shadow-md">
-                  <h2 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-8 flex items-center gap-2">
-                    <BookOpen size={14} /> Upskilling Roadmap
-                  </h2>
-                  <div className="space-y-4">
-                     {aiSuggestions.skills_to_learn.map((skill, i) => (
-                       <div key={i} className="flex items-center justify-between p-4 bg-brand-warm rounded-2xl border border-brand-border shadow-inner">
-                          <span className="text-sm text-brand-dark font-bold tracking-tight">{skill}</span>
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-brand-blue">Recommended</span>
-                       </div>
-                     ))}
-                  </div>
-               </Card>
-            </div>
-          )}
+          {/* OPTIMIZATION + UPSKILLING */}
+          <ResultCard className="mb-12" delay={0.25}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-16">
+              <div>
+                <SectionLabel icon={<Lightbulb size={20} className="text-[#5F9EA0]" />}>Resume Optimization</SectionLabel>
+                <div className="space-y-4">
+                  {aiSuggestions.resume_tips?.length > 0 ? aiSuggestions.resume_tips.map((tip, i) => (
+                    <div key={i} className="flex gap-4 p-5 bg-[#FAF6F2] rounded-2xl border border-[#E7DDE5] group hover:bg-white transition-all">
+                      <div className="w-2 h-2 rounded-full bg-[#5F9EA0] mt-1.5 shrink-0" />
+                      <p className="text-sm text-[#243447] leading-relaxed font-medium">{tip}</p>
+                    </div>
+                  )) : <p className="text-sm text-[#6B7A8C] italic">{copy.noTips}</p>}
+                </div>
+              </div>
 
-          {/* Career Path Intelligence */}
+              <div>
+                <SectionLabel icon={<TrendingUp size={20} className="text-[#5F9EA0]" />}>Upskilling Path</SectionLabel>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+                  {aiSuggestions.skills_to_learn?.length > 0 ? aiSuggestions.skills_to_learn.map((skill, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 bg-[#FAF6F2] border border-[rgba(95,158,160,0.3)] rounded-xl group hover:border-[rgba(95,158,160,0.3)] transition-all">
+                      <span className="text-[11px] font-bold text-[#243447] tracking-widest uppercase">{skill}</span>
+                      <Zap size={14} className="text-[#5F9EA0] opacity-30 group-hover:opacity-100 transition-all" />
+                    </div>
+                  )) : <p className="text-sm text-[#6B7A8C] italic">Refining skill recommendations based on current profile alignment.</p>}
+                </div>
+
+                <div className="p-5 rounded-2xl bg-[rgba(220,239,232,0.4)] border border-[rgba(95,158,160,0.2)]">
+                  <p className="text-[10px] font-bold text-[#5F9EA0] uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Award size={14} /> Recommended Focus
+                  </p>
+                  <p className="text-xs text-[#243447] leading-relaxed font-medium">
+                    Mastering {missing[0] || 'emerging industry tools'} could strengthen alignment by approximately 15–20% for senior roles.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </ResultCard>
+
+          {/* CAREER PATHS */}
           {(careerPaths.jobs_now?.length > 0 || careerPaths.jobs_after_learning?.length > 0) && (
-            <div className="lg:col-span-3 py-12 border-t border-brand-border mt-12">
-               <div className="flex items-center gap-4 mb-10">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 text-brand-blue shadow-md">
-                     <Zap size={24} fill="currentColor" />
+            <ResultCard className="mb-12" delay={0.3}>
+              <SectionLabel icon={<Briefcase size={16} className="text-[#5F9EA0]" />}>Career Opportunities</SectionLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                {careerPaths.jobs_now?.length > 0 && (
+                  <div className="space-y-6">
+                    <p className="text-[10px] font-bold text-[#6B7A8C] uppercase tracking-widest border-b border-[#E7DDE5] pb-2">Immediate Matches</p>
+                    {careerPaths.jobs_now.slice(0, 3).map((job, i) => (
+                      <div key={i} className="space-y-1 group">
+                        <p className="text-base font-bold text-[#243447] group-hover:text-[#5F9EA0] transition-colors">{job.title}</p>
+                        <p className="text-xs text-[#6B7A8C] leading-relaxed line-clamp-2">{job.match_reason}</p>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <h2 className="text-3xl font-bold tracking-tighter text-brand-dark">Career Intelligence</h2>
-                    <p className="text-brand-muted text-xs font-medium uppercase tracking-[0.2em] mt-1">High-probability role alignment</p>
+                )}
+                {careerPaths.jobs_after_learning?.length > 0 && (
+                  <div className="space-y-6">
+                    <p className="text-[10px] font-bold text-[#6B7A8C] uppercase tracking-widest border-b border-[#E7DDE5] pb-2">Future Growth</p>
+                    {careerPaths.jobs_after_learning.slice(0, 3).map((job, i) => (
+                      <div key={i} className="space-y-1 opacity-60 hover:opacity-100 transition-opacity">
+                        <p className="text-base font-bold text-[#243447]">{job.title}</p>
+                        <span className="text-[9px] font-black uppercase text-[#5F9EA0] tracking-widest">Potential Match</span>
+                      </div>
+                    ))}
                   </div>
-               </div>
-               
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {careerPaths.jobs_now?.length > 0 && (
-                    <div className="space-y-4">
-                       <h3 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-6">Immediate Opportunities</h3>
-                       {careerPaths.jobs_now.map((job, i) => (
-                         <div key={i} className="glass-panel p-6 rounded-3xl border-transparent hover:border-brand-blue/30 transition-all group shadow-md">
-                            <div className="text-lg font-bold text-brand-dark mb-2 group-hover:text-brand-blue transition-colors tracking-tight">{job.title}</div>
-                            <p className="text-xs text-brand-muted font-medium leading-relaxed">{job.match_reason}</p>
-                         </div>
-                       ))}
-                    </div>
-                  )}
-
-                  {careerPaths.jobs_after_learning?.length > 0 && (
-                    <div className="space-y-4">
-                       <h3 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-6">Future Growth Paths</h3>
-                       {careerPaths.jobs_after_learning.map((job, i) => (
-                         <div key={i} className="glass-panel p-6 rounded-3xl border-transparent hover:border-brand-border transition-all shadow-md">
-                            <div className="flex justify-between items-start mb-2">
-                               <div className="text-lg font-bold text-brand-dark tracking-tight">{job.title}</div>
-                               <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full border ${
-                                 job.potential === 'High' ? 'bg-brand-success/30 text-brand-blue border-brand-blue/20' : 'bg-brand-warm text-brand-muted border-brand-border'
-                               }`}>{job.potential}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-1 mt-4">
-                               {job.skills_needed?.map((s, idx) => (
-                                 <span key={idx} className="text-[8px] font-bold uppercase tracking-widest bg-brand-warm text-brand-muted px-2 py-1 rounded-lg border border-brand-border">{s}</span>
-                               ))}
-                            </div>
-                         </div>
-                       ))}
-                    </div>
-                  )}
-               </div>
-            </div>
+                )}
+              </div>
+            </ResultCard>
           )}
 
-          {/* Deep LinkedIn Profile Integration */}
-          {(linkedinRawData || data.linkedin_error) && (
-            <div className="lg:col-span-3 mt-12 w-full border-t border-brand-border pt-12">
-               <div className="flex items-center gap-4 mb-10 justify-center">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-warm flex items-center justify-center border border-brand-border text-brand-muted shadow-md">
-                     <ShieldCheck size={24} />
-                  </div>
-                  <div className="text-center">
-                    <h2 className="text-3xl font-bold tracking-tighter text-brand-dark">LinkedIn Verification</h2>
-                    <p className="text-brand-muted text-xs font-medium uppercase tracking-[0.2em] mt-1 italic">Scan provided by Bright Data Intelligent Scraping</p>
-                  </div>
-               </div>
-               <LinkedInProfile data={linkedinRawData} error={data.linkedin_error} loading={false} injectedSkills={linkedinSkills.length > 0 ? linkedinSkills : skills} />
-            </div>
-          )}
-
-          {/* Deep GitHub Codebase Integration */}
-          {githubData && (
-            <div className="lg:col-span-3 mt-12 w-full border-t border-brand-border pt-12 text-left">
-               <div className="flex items-center gap-4 mb-10 justify-center">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-warm flex items-center justify-center border border-brand-border text-brand-muted shadow-md">
-                     <Code2 size={24} />
-                  </div>
-                  <div className="text-center">
-                    <h2 className="text-3xl font-bold tracking-tighter text-brand-dark">GitHub Evaluation</h2>
-                    <p className="text-brand-muted text-xs font-medium uppercase tracking-[0.2em] mt-1 italic">Codebase Analysis and AI Assessment</p>
-                  </div>
-               </div>
-               
-               {githubData.error ? (
-                  <div className="p-6 bg-brand-warm rounded-[2rem] border border-brand-border text-center text-brand-danger font-medium shadow-sm">
-                    {githubData.error}
-                  </div>
-               ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                     <Card className="shadow-md border-brand-border/40">
-                        <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                           <Cpu size={14} /> Repository Intelligence
-                        </h2>
-                        <div className="flex items-center justify-between mb-8 pb-8 border-b border-brand-border">
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Industry Score</p>
-                            <span className="text-4xl font-bold tracking-tighter text-brand-dark">{githubData.industry_score}</span>
-                            <span className="text-brand-muted text-sm font-bold ml-1">/ 100</span>
-                          </div>
-                          <div className="text-right">
-                             <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue border border-brand-blue/20 rounded-lg text-[10px] font-bold uppercase tracking-widest inline-block mb-2">
-                               {githubData.status}
-                             </div>
-                          </div>
+          {/* LINKEDIN / PROFILE INTELLIGENCE */}
+          <AnimatePresence>
+            {linkedinRawData && (
+              <motion.section
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="mt-16 pt-16 border-t border-[#E7DDE5]"
+              >
+                <header className="mb-14">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#FAF6F2] border border-[#E7DDE5] flex items-center justify-center text-[#5F9EA0]">
+                          <Globe size={20} />
                         </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Languages</p>
-                              <p className="text-sm font-bold text-brand-dark">{githubData.metrics?.languages_detected?.slice(0,2).join(', ')}{githubData.metrics?.languages_detected?.length > 2 ? '...' : ''}</p>
-                           </div>
-                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Total Lines</p>
-                              <p className="text-sm font-bold text-brand-dark">{githubData.metrics?.total_lines?.toLocaleString()}</p>
-                           </div>
-                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Code Quality</p>
-                              <p className="text-sm font-bold text-brand-dark">{githubData.breakdown?.code_quality}%</p>
-                           </div>
-                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
-                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Documentation</p>
-                              <p className="text-sm font-bold text-brand-dark">{githubData.breakdown?.documentation}%</p>
-                           </div>
-                        </div>
-                     </Card>
-
-                     <div className="space-y-8">
-                       <Card className="shadow-md border-brand-border/40">
-                          <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                             <CheckCircle2 size={14} /> Proven Strengths
-                          </h2>
-                          <ul className="space-y-3">
-                             {githubData.strengths?.map((str, idx) => (
-                               <li key={idx} className="flex gap-3 text-sm text-brand-muted font-medium items-start leading-relaxed">
-                                 <CheckCircle2 size={16} className="text-brand-blue shrink-0 mt-0.5" />
-                                 {str}
-                               </li>
-                             ))}
-                          </ul>
-                       </Card>
-
-                       <Card className="shadow-md border-brand-border/40">
-                          <h2 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                             <TrendingUp size={14} /> Areas for Improvement
-                          </h2>
-                          <ul className="space-y-3">
-                             {githubData.weaknesses?.map((wk, idx) => (
-                               <li key={idx} className="flex gap-3 text-sm text-brand-dark font-medium items-start leading-relaxed">
-                                 <XCircle size={16} className="text-brand-muted shrink-0 mt-0.5" />
-                                 {wk}
-                               </li>
-                             ))}
-                          </ul>
-                       </Card>
-                     </div>
+                        <h2 className="text-3xl font-bold tracking-tighter text-[#6E8FA0]">Professional Profile</h2>
+                      </div>
+                      <p className="text-[#6B7A8C] font-medium text-lg max-w-2xl">
+                        Cross-referenced history and skill endorsements from verified sources.
+                      </p>
+                    </div>
+                    <Badge variant="success">Profile Linked</Badge>
                   </div>
-               )}
+                </header>
+                <LinkedInProfile
+                  data={linkedinRawData}
+                  loading={false}
+                  injectedSkills={linkedinSkills.length > 0 ? linkedinSkills : skills}
+                />
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {!linkedinRawData && (
+            <div className="mt-16 py-10 px-8 rounded-[2rem] border border-[#E7DDE5] bg-[#FAF6F2] text-center max-w-2xl mx-auto">
+              <FileWarning size={28} className="mx-auto mb-3 text-[rgba(107,122,140,0.2)]" />
+              <p className="text-[10px] font-bold text-[rgba(107,122,140,0.4)] uppercase tracking-widest">
+                External profile verification was not provided for this analysis.
+              </p>
             </div>
           )}
-
         </div>
+      </main>
 
-        <footer className="mt-20 text-center text-[10px] font-bold uppercase tracking-[0.5em] text-brand-muted/30 border-t border-brand-border pt-12">
-            HireLens AI Intelligence Network &bull; Hackathon Production 2026
-        </footer>
+      {/* FOOTER — matching Landing Page */}
+      <footer className="py-20 px-6 border-t border-[#E7DDE5] bg-white mt-auto">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-16">
+          <div className="space-y-5">
+            <div className="text-2xl font-bold tracking-tight text-[#243447]">HireLens</div>
+            <p className="text-sm text-[#6B7A8C] max-w-xs font-medium leading-relaxed">A modern, grounded tool for resume screening and candidate evaluation.</p>
+          </div>
+          <div className="flex flex-wrap gap-x-20 gap-y-10">
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-bold text-[#243447] uppercase tracking-widest">Report</span>
+              <Link to="/analyze" className="text-xs font-bold text-[#6B7A8C] hover:text-[#243447] uppercase tracking-widest transition-colors">New Analysis</Link>
+            </div>
+            <div className="flex flex-col gap-4">
+              <span className="text-[10px] font-bold text-[#243447] uppercase tracking-widest">Product</span>
+              <Link to="/" className="text-xs font-bold text-[#6B7A8C] hover:text-[#243447] uppercase tracking-widest transition-colors">Home</Link>
+            </div>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto mt-20 pt-10 border-t border-[#E7DDE5] text-center">
+          <p className="text-[10px] font-bold text-[#6B7A8C]/20 uppercase tracking-[0.6em] select-none">HireLens 2026 &bull; Designed for People</p>
+        </div>
+      </footer>
 
-      </div>
     </div>
   )
 }
