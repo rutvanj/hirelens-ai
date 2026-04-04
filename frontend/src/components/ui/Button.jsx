@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import React from 'react'
 
 export const Button = ({ 
   children, 
@@ -9,27 +10,27 @@ export const Button = ({
   disabled = false,
   loading = false 
 }) => {
-  const baseStyles = "px-6 py-3 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-2 text-sm uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+  const baseStyles = "px-6 py-2.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm tracking-tight disabled:opacity-50 disabled:cursor-not-allowed select-none"
   
   const variants = {
-    primary: "bg-brand-blue text-white hover:bg-[#4F8789] shadow-[0_4px_12px_rgba(95,158,160,0.15)]",
-    secondary: "bg-brand-pink text-brand-dark hover:bg-[#f3c8da] shadow-sm",
-    outline: "bg-transparent border border-brand-border text-brand-dark hover:border-brand-blue hover:text-brand-blue",
-    ghost: "bg-transparent text-brand-muted hover:text-brand-dark hover:bg-brand-pink/20",
-    accent: "bg-brand-blue text-white hover:bg-brand-dark shadow-[0_4px_12px_rgba(95,158,160,0.2)]"
+    primary: "bg-[#5F9EA0] hover:bg-[#4F8789] text-white shadow-sm hover:shadow-md",
+    secondary: "bg-[#F8DCE8] hover:bg-[#f3c8da] text-[#243447]",
+    outline: "border border-[#E7DDE5] hover:border-[#5F9EA0] text-[#243447] hover:bg-white",
+    ghost: "text-[#6B7A8C] hover:text-[#243447] hover:bg-[#F8DCE8]/40",
+    accent: "bg-[#5F9EA0] text-white hover:bg-[#4F8789] shadow-sm" // mapping old accent to primary
   }
 
   return (
     <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={!disabled ? { scale: 1.01 } : {}}
+      whileTap={!disabled ? { scale: 0.98 } : {}}
       type={type}
       onClick={onClick}
       disabled={disabled || loading}
-      className={`${baseStyles} ${variants[variant]} ${className}`}
+      className={`${baseStyles} ${variants[variant] || variants.primary} ${className}`}
     >
       {loading ? (
-        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
       ) : children}
     </motion.button>
   )

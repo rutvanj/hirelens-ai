@@ -1,18 +1,19 @@
 import { motion } from 'framer-motion'
+import React from 'react'
 
-export const Card = ({ children, className = '', hover = true, delay = 0 }) => {
-  const baseStyles = "glass-panel rounded-[2rem] p-8 relative overflow-hidden"
-  const hoverStyles = hover ? "glass-panel-hover" : ""
-
+export const Card = ({ children, className = '', hover = true }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay }}
-      className={`${baseStyles} ${hoverStyles} ${className}`}
+      className={`
+        bg-white border border-[#E7DDE5] rounded-[2rem] p-8 
+        ${hover ? 'hover:border-[#5F9EA0]/30 transition-all duration-300' : ''} 
+        shadow-[0_20px_50px_-20px_rgba(36,52,71,0.05)]
+        ${className}
+      `}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-pink/10 to-transparent pointer-events-none" />
-      <div className="relative z-10">{children}</div>
+      {children}
     </motion.div>
   )
 }
