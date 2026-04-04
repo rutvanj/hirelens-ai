@@ -15,7 +15,17 @@ import io
 
 app = Flask(__name__)
 # Allow cross-origin requests from the future Vercel domain and local dev
-CORS(app, resources={r"/*": {"origins": "*"}}) 
+CORS(app, resources={r"/*": {
+    "origins": "*",
+    "methods": ["GET", "POST", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"]
+}}) 
+
+@app.before_request
+def log_request_info():
+    app.logger.debug('Headers: %s', request.headers)
+    app.logger.debug('Body: %s', request.get_data())
+    print(f"--- Inbound Request: {request.method} {request.path} ---")
 
 
 # -------- PDF TEXT EXTRACTION --------
@@ -124,9 +134,14 @@ def analyze_api():
         pdl_data = fetch_bright_data(linkedin_url)
 
     # -------- ANALYZE RESUME --------
-    result = analyze_resume(resume_text, job_desc, pdl_data)
-    
-    return jsonify(result), 200
+    try:
+        print(f"Starting analysis for resume text length: {len(resume_text)}")
+        result = analyze_resume(resume_text, job_desc, pdl_data)
+        print("Analysis complete.")
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"Error during analysis: {str(e)}")
+        return jsonify({"error": f"Intelligence Engine Error: {str(e)}"}), 500
 
     return jsonify({"error": "Invalid request"}), 400
 

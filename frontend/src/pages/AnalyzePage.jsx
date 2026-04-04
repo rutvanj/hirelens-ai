@@ -63,7 +63,8 @@ export default function AnalyzePage() {
     formData.append('linkedin_url', linkedinUrl)
 
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10000'
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:10000'
+      console.log(`🧠 Initiating intelligence scan at: ${backendUrl}/analyze`)
       const response = await fetch(`${backendUrl}/analyze`, {
         method: 'POST',
         body: formData,
