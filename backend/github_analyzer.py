@@ -7,7 +7,6 @@ import json
 import requests
 from urllib.parse import urlparse
 from radon.complexity import cc_visit
-from groq import Groq
 from dotenv import load_dotenv
 
 ALLOWED_EXT = {'.py', '.js', '.ts', '.jsx', '.tsx', '.cpp', '.c', '.java'}
@@ -31,35 +30,41 @@ def resolve_github_url(url: str) -> str:
                 print("Failed to resolve GH profile:", e)
     return url
 
-def _find_git() -> str:
-    """Locate git executable — checks PATH first, then common install locations."""
-    import glob as _glob
+import zipfile
+import io
 
-    git = shutil.which("git")
-    if git:
-        return git
-
-    # GitHub Desktop bundles git under a versioned app-X.Y.Z folder — glob for resilience
-    appdata_local = os.environ.get("LOCALAPPDATA", r"C:\Users\Maurya shah\AppData\Local")
-    github_desktop_pattern = os.path.join(appdata_local, "GitHubDesktop", "app-*", "resources", "app", "git", "cmd", "git.exe")
-    matches = sorted(_glob.glob(github_desktop_pattern), reverse=True)  # newest version first
-    if matches:
-        return matches[0]
-
-    # Other known locations
-    candidates = [
-        r"C:\Program Files\Git\cmd\git.exe",
-        r"C:\Program Files (x86)\Git\cmd\git.exe",
-        os.path.join(appdata_local, "Programs", "Git", "cmd", "git.exe"),
-    ]
-    for c in candidates:
-        if os.path.isfile(c):
-            return c
-
-    raise RuntimeError(
-        "git executable not found. Please install Git or GitHub Desktop, or add git to your PATH."
-    )
-
+def download_repo_zip(repo_url: str, extract_to: str) -> bool:
+    """Download the repository as a ZIP using GitHub's zipball endpoint."""
+    parsed = urlparse(repo_url)
+    if parsed.netloc == "github.com":
+        parts = [p for p in parsed.path.split('/') if p]
+        if len(parts) >= 2:
+            owner, repo_name = parts[0], parts[1]
+            zip_url = f"https://api.github.com/repos/{owner}/{repo_name}/zipball"
+            headers = {"User-Agent": "HireLens-Analyzer"}
+            
+            try:
+                r = requests.get(zip_url, headers=headers, stream=True, timeout=30)
+                if r.status_code == 200:
+                    with zipfile.ZipFile(io.BytesIO(r.content)) as z:
+                        z.extractall(extract_to)
+                        
+                    # GitHub zipball extracts into a subfolder (e.g. owner-repo-sha). 
+                    # We move its contents up one level so the structure mimics git clone.
+                    extracted_items = os.listdir(extract_to)
+                    if len(extracted_items) == 1:
+                        subfolder = os.path.join(extract_to, extracted_items[0])
+                        if os.path.isdir(subfolder):
+                            for item in os.listdir(subfolder):
+                                shutil.move(os.path.join(subfolder, item), os.path.join(extract_to, item))
+                            os.rmdir(subfolder)
+                    return True
+                else:
+                    print(f"Failed to download ZIP: {r.status_code} - {r.text}")
+            except Exception as e:
+                print(f"Zip download error: {e}")
+                
+    return False
 def remove_readonly(func, path, excinfo):
     """Clear readonly flag for git deletion via shutil"""
     os.chmod(path, stat.S_IWRITE)
@@ -73,20 +78,12 @@ def analyze_github_repo(repo_url: str):
     temp_dir = os.path.abspath(temp_dir)
 
     try:
-        # 1. Clone using subprocess (avoids GitPython PATH dependency)
-        git_exe = _find_git()
-        print(f"Cloning {repo_url} into {temp_dir} using {git_exe}...")
-        os.makedirs(os.path.dirname(temp_dir), exist_ok=True)
+        # 1. Download ZIP instead of cloning (avoids git executable missing issues)
+        print(f"Downloading {repo_url} as ZIP into {temp_dir}...")
+        os.makedirs(extract_to_dir := temp_dir, exist_ok=True)
 
-        env = os.environ.copy()
-        env["GIT_TERMINAL_PROMPT"] = "0"  # Prevent credential prompt from hanging
-
-        result = subprocess.run(
-            [git_exe, "clone", "--depth=1", repo_url, temp_dir],
-            capture_output=True, text=True, timeout=120, env=env
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"git clone failed: {result.stderr.strip()}")
+        if not download_repo_zip(repo_url, extract_to_dir):
+            raise RuntimeError(f"Failed to download repository zip from: {repo_url}")
 
         # 2. Traverse and measure
         total_lines = 0
@@ -168,7 +165,6 @@ def analyze_github_repo(repo_url: str):
         llm_output = {}
 
         if api_key:
-            client = Groq(api_key=api_key)
             prompt = f"""You are a strict senior engineer reviewing a student GitHub project.
 Metrics:
 - Total lines: {total_lines}
@@ -191,20 +187,28 @@ Return JSON ONLY in format:
     "advanced": ["...", "..."]
   }}
 }}"""
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "llama3-8b-8192",
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.7,
+                "response_format": {"type": "json_object"}
+            }
+
             try:
-                completion = client.chat.completions.create(
-                    model="llama3-8b-8192",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.7
-                )
-                content = completion.choices[0].message.content.strip()
-                if content.startswith("```json"):
-                    content = content[7:-3].strip()
-                elif content.startswith("```"):
-                    content = content[3:-3].strip()
-                llm_output = json.loads(content)
+                print(f"Calling Groq API for GitHub analysis...")
+                resp = requests.post(url, headers=headers, json=payload, timeout=20)
+                if resp.status_code == 200:
+                    content = resp.json()["choices"][0]["message"]["content"].strip()
+                    llm_output = json.loads(content)
+                else:
+                    print(f"Groq API Error: {resp.status_code} - {resp.text}")
             except Exception as e:
-                print(f"LLM Parsing Failed: {e}")
+                print(f"LLM API Call Failed: {e}")
         else:
             print("GROQ_API_KEY not found. Skipping LLM assessment.")
 
