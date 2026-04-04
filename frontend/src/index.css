@@ -1,16 +1,41 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=DM+Serif+Display:ital@0;1&display=swap');
 
 @theme {
-  --color-brand-blue: #5F9EA0;
-  --color-brand-pink: #F8DCE8;
-  --color-brand-dark: #243447;
-  --color-brand-bg: #FFF7FB;
-  --color-brand-border: #E7DDE5;
-  --color-brand-muted: #6B7A8C;
-  --color-brand-heading: #6E8FA0;
-  --color-brand-warm: #FAF6F2;
-  --color-brand-success: #DCEFE8;
-  --color-brand-danger: #F3DDE2;
+  --color-warm-bg: #FBF7F2;
+  --color-warm-card: #FFFFFF;
+  --color-warm-border: #E8DDD0;
+  --color-warm-border-light: #F2EBE2;
+  
+  --color-amber-deep: #B45309;
+  --color-amber-mid: #D97706;
+  --color-amber-light: #FDE68A;
+  --color-amber-pale: #FFFBEB;
+  
+  --color-terra: #92400E;
+  --color-terra-light: #FEF3C7;
+  
+  --color-coral: #DC4B2A;
+  --color-coral-light: #FEE2D5;
+  
+  --color-sage: #2D6A4F;
+  --color-sage-light: #D1FAE5;
+  
+  --color-ink: #1C1108;
+  --color-muted: #6B5A45;
+  --color-hint: #A89880;
+
+  /* Legacy brand colors mapping to new theme for compatibility */
+  --color-brand-blue: var(--color-sage);
+  --color-brand-pink: var(--color-amber-pale);
+  --color-brand-dark: var(--color-ink);
+  --color-brand-bg: var(--color-warm-bg);
+  --color-brand-border: var(--color-warm-border);
+  --color-brand-muted: var(--color-muted);
+  --color-brand-heading: var(--color-amber-deep);
+  --color-brand-warm: var(--color-warm-bg);
+  --color-brand-success: var(--color-sage-light);
+  --color-brand-danger: var(--color-coral-light);
 }
 
 html, body {
@@ -18,18 +43,22 @@ html, body {
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  background-color: var(--color-brand-bg);
-  color: var(--color-brand-dark);
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background-color: var(--color-warm-bg);
+  color: var(--color-ink);
+  font-family: 'DM Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Reset legacy headers */
-h1, h2, h3 {
+.font-serif {
+  font-family: 'DM Serif Display', serif;
+}
+
+/* Reset headings */
+h1, h2, h3, h4, h5, h6 {
   color: inherit;
-  text-shadow: none;
-  letter-spacing: -0.02em;
+  margin: 0;
+  padding: 0;
 }
 
 /* Grounded transitions */
@@ -43,19 +72,19 @@ h1, h2, h3 {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-brand-bg);
+  background: var(--color-warm-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-brand-border);
+  background: var(--color-warm-border);
   border-radius: 10px;
-  border: 2px solid var(--color-brand-bg);
+  border: 2px solid var(--color-warm-bg);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-brand-muted);
+  background: var(--color-muted);
 }
 
 /* Utility for text selection */
 ::selection {
-  background-color: var(--color-brand-pink);
-  color: var(--color-brand-dark);
+  background-color: var(--color-amber-light);
+  color: var(--color-ink);
 }

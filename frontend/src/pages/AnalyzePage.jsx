@@ -9,7 +9,9 @@ import {
   Info, 
   ChevronLeft,
   FileCheck,
-  CheckCircle2
+  CheckCircle2,
+  Code,
+  Globe
 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -20,6 +22,7 @@ export default function AnalyzePage() {
   
   const [jobDesc, setJobDesc] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [githubUrl, setGithubUrl] = useState('')
   const [file, setFile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -43,6 +46,7 @@ export default function AnalyzePage() {
     formData.append('resume_file', file)
     formData.append('job_desc', jobDesc)
     formData.append('linkedin_url', linkedinUrl)
+    formData.append('github_url', githubUrl)
 
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:10000'
@@ -57,6 +61,7 @@ export default function AnalyzePage() {
 
       const data = await response.json()
       localStorage.setItem('hirelens_results', JSON.stringify(data))
+      localStorage.setItem('hirelens_last_github', githubUrl)
       navigate('/results')
       
     } catch (err) {
@@ -138,24 +143,33 @@ export default function AnalyzePage() {
                   </label>
                 </div>
 
-                {/* 2. LinkedIn & Project Links */}
+                {/* 2. LinkedIn & GitHub Links */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <Input 
                     label="LinkedIn Profile (Optional)" 
                     placeholder="linkedin.com/in/username"
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
+                    icon={<Globe size={14} />}
                   />
-                  <div className="flex flex-col gap-2">
-                     <span className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C] ml-1 flex items-center gap-2">
-                        <ShieldCheck size={14} /> Verification
-                     </span>
-                     <div className="bg-[#FAF6F2] rounded-2xl border border-[#E7DDE5] h-full flex items-center px-5">
-                        <p className="text-[10px] text-[#6B7A8C] font-bold uppercase tracking-widest flex items-center gap-2">
-                          <CheckCircle2 size={12} className="text-[#5F9EA0]" /> Live verification enabled
-                        </p>
-                     </div>
-                  </div>
+                  <Input 
+                    label="GitHub Repository / Profile (Optional)" 
+                    placeholder="github.com/username/repo"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    icon={<Code size={14} />}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                   <span className="text-[11px] font-bold uppercase tracking-widest text-[#6B7A8C] ml-1 flex items-center gap-2">
+                      <ShieldCheck size={14} /> Verification
+                   </span>
+                   <div className="bg-[#FAF6F2] rounded-2xl border border-[#E7DDE5] py-4 px-6">
+                      <p className="text-[10px] text-[#6B7A8C] font-bold uppercase tracking-widest flex items-center gap-2">
+                        <CheckCircle2 size={12} className="text-[#5F9EA0]" /> Live verification enabled
+                      </p>
+                   </div>
                 </div>
 
                 {/* 3. Job Description */}
@@ -175,7 +189,7 @@ export default function AnalyzePage() {
                     loading={loading}
                     disabled={loading}
                   >
-                    {loading ? 'Analyzing resume...' : 'Generate candidate report'}
+                    {loading ? (githubUrl ? 'Analyzing resume & codebase...' : 'Analyzing resume...') : 'Generate candidate report'}
                   </Button>
                   <p className="mt-4 text-[10px] text-[#6B7A8C] font-bold text-center uppercase tracking-widest flex items-center justify-center gap-2">
                     <Info size={12} /> Processing usually takes 10–15 seconds

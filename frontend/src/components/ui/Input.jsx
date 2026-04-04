@@ -9,7 +9,8 @@ export const Input = ({
   name, 
   required = false, 
   className = '',
-  autoFocus = false
+  autoFocus = false,
+  icon = null
 }) => {
   return (
     <div className={`space-y-2 w-full text-left ${className}`}>
@@ -18,16 +19,26 @@ export const Input = ({
           {label}
         </label>
       )}
-      <input
-        autoFocus={autoFocus}
-        type={type}
-        name={name}
-        required={required}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="w-full px-5 py-3 rounded-2xl border border-[#E7DDE5] focus:border-[#5F9EA0] outline-none transition-all text-sm text-[#243447] placeholder-[#6B7A8C]/30 bg-white"
-      />
+      <div className="relative group">
+        {icon && (
+          <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#6B7A8C] group-focus-within:text-[#5F9EA0] transition-colors pointer-events-none opacity-50">
+            {icon}
+          </div>
+        )}
+        <input
+          autoFocus={autoFocus}
+          type={type}
+          name={name}
+          required={required}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className={`
+            w-full py-3 rounded-2xl border border-[#E7DDE5] focus:border-[#5F9EA0] outline-none transition-all text-sm text-[#243447] placeholder-[#6B7A8C]/30 bg-white
+            ${icon ? 'pl-11 pr-5' : 'px-5'}
+          `}
+        />
+      </div>
     </div>
   )
 }
