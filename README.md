@@ -1,96 +1,151 @@
 # HireLens AI
 
-HireLens AI is an AI-powered resume analysis platform built to help users evaluate how well their resume matches a given job description. Refactored into a modern, fully separated architecture featuring a React (Vite+Tailwind) frontend and a Python Flask backend.
+**HireLens AI** is an AI-assisted resume analysis platform that helps evaluate how well a candidate fits a specific job role.
 
-This project was originally developed by **Team Yuktava** as a hackathon project.
+It combines **resume parsing**, **job description comparison**, and **profile enrichment** to generate a structured candidate report with:
+- match scoring
+- skill gap analysis
+- resume improvement suggestions
+- upskilling guidance
+- career role alignment
+
+The goal is to make candidate screening **faster, clearer, and more grounded** for hiring and self-evaluation.
+
+---
+
+## 🚀 Live Demo
+
+- **Frontend (Vercel):** https://hirelens-ai-two.vercel.app
+- **Backend (Render):** https://hirelens-backend-ly7r.onrender.com
+
+> ⚠️ Note: Since the backend is hosted on **Render**, the API may take a few seconds to wake up on first request.
+
+---
+
+## 💡 Why HireLens AI?
+
+HireLens AI was built to reduce the gap between **candidate potential** and **job readiness**.
+
+Instead of only telling users whether they are a fit or not, it explains:
+- what aligns
+- what is missing
+- how to improve
+- what roles they can realistically target next
+
+This makes it useful not only for **recruiters**, but also for **students and job seekers** trying to improve their resume strategically.
+
+---
+
+## 📌 Problem Statement
+
+Recruiters and hiring teams often spend significant time manually comparing resumes against job descriptions.
+
+At the same time, students and job seekers struggle to understand:
+- how well their resume fits a role
+- what skills are missing
+- what they should improve before applying
+
+**HireLens AI** solves this by providing a structured, AI-assisted evaluation of a candidate profile against a target job role.
 
 ---
 
 ## ✨ Features
 
-- Resume upload support (PDF & Images)
-- Job description matching
-- ATS-style resume analysis (Skill extraction, Keyword detection)
-- LinkedIn Profile enrichment via Bright Data
-- Aesthetically premium dark themed frontend
+### 📄 Resume Upload & Parsing
+- Upload resumes in **PDF or image format**
+- Extracts and processes candidate information for analysis
+
+### 🧠 AI-Based Candidate Evaluation
+- Compares resume content against a given **job description**
+- Generates a **candidate suitability report**
+
+### 🎯 Match Scoring
+- Provides an overall **fit / suitability score**
+- Includes ATS-style evaluation indicators
+
+### 🧩 Skill Gap Analysis
+- Highlights:
+  - **matched skills**
+  - **missing skills**
+  - technical alignment
+
+### 💡 Resume Improvement Suggestions
+- Gives practical suggestions to improve role alignment
+- Helps candidates tailor their resume more effectively
+
+### 📈 Upskilling Recommendations
+- Suggests what to learn next based on missing requirements
+- Includes a roadmap-style section for improvement
+
+### 💼 Career Role Insights
+- Shows:
+  - **immediate role matches**
+  - **future growth opportunities**
+
+### 🔗 LinkedIn Profile Enrichment
+- Optional LinkedIn profile input
+- Displays enriched professional profile details such as:
+  - profile summary
+  - confirmed skills
+  - academic record
+  - shared activity snapshot
+
+### 📥 PDF Report Export
+- Download the generated report for sharing or review
 
 ---
 
-## 🛠 Tech Stack
+## 🖼️ UI / Design Highlights
+
+HireLens AI follows a **Soft Premium** design system with:
+
+- light, human-centered visual styling
+- soft pastel background tones
+- teal accent highlights
+- rounded cards and clean layouts
+- structured dashboard-style results
+- modern micro-interactions and transitions
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- React + Vite
-- Tailwind CSS
-- React Router 
-- Chart.js (Radar Charts)
-- Framer Motion & Lucide React
+- **React**
+- **Vite**
+- **Tailwind CSS**
+- **Framer Motion**
+- **Chart.js**
+- **Lucide React**
 
 ### Backend
-- Python
-- Flask
-- Flask-CORS
-- PDFPlumber & PyTesseract for Extraction
+- **Python**
+- **Flask**
+- **pdfplumber**
+- **PyTesseract**
+- **OCR / parsing pipeline**
+- **AI / LLM-based evaluation logic**
+
+### Deployment
+- **Frontend:** Vercel
+- **Backend:** Render
 
 ---
 
-## 📂 Project Structure
+## 🧱 Project Structure
 
 ```bash
 HireLens-AI/
 │
-├── backend/             # Python Flask API
-│   ├── app.py           # Main backend entrypoint
-│   ├── resume_checker.py # Core analysis logic
-│   ├── requirements.txt # Python dependencies
-│   └── render.yaml      # Render deployment config
-│
-├── frontend/            # React + Vite frontend
+├── frontend/              # React + Vite frontend
 │   ├── src/
-│   │   ├── components/  # React reusable components
-│   │   ├── pages/       # Next-gen pages: Landing, Analyze, Results
-│   │   └── App.jsx      # Frontend router setup
-│   └── vite.config.js   # Vite configuration
+│   ├── public/
+│   └── ...
+│
+├── backend/               # Flask backend
+│   ├── app.py
+│   ├── routes/
+│   ├── utils/
+│   └── ...
 │
 └── README.md
-```
-
----
-
-## 🚀 Local Development
-
-### 1. Backend
-```bash
-cd backend
-python -m venv venv
-# Enable venv here
-pip install -r requirements.txt
-# Set environment variables (.env file inside /backend)
-python app.py
-```
-*(Backend runs on `localhost:10000` by default)*
-
-### 2. Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-*(Frontend runs on `localhost:5173` typically)*
-
----
-
-## ☁️ Deployment Guides
-
-### Deploying Frontend (Vercel)
-1. Import the repository into Vercel.
-2. Set **Framework Preset** to `Vite`.
-3. Set **Root Directory** to `frontend`.
-4. Build Command: `npm run build` | Output Directory: `dist`.
-5. Environment Variables:
-   - `VITE_BACKEND_URL` -> URL of your deployed Render backend API.
-
-### Deploying Backend (Render)
-1. Import repository into Render as a **Web Service**.
-2. Connect to the repository, Render will auto-detect configurations from `backend/render.yaml`.
-3. In actual Render UI, ensure you override the Root Directory to `backend/` if required, although `render.yaml` specifies it.
-4. Set required Environment Variables: `BRIGHT_DATA_API_KEY`.
