@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Home, CheckCircle2, XCircle, Lightbulb, BookOpen, Briefcase, TrendingUp, Zap, Cpu, ShieldCheck } from 'lucide-react'
+import { Home, CheckCircle2, XCircle, Lightbulb, BookOpen, Briefcase, TrendingUp, Zap, Cpu, ShieldCheck, Code2 } from 'lucide-react'
 import RadarChart from '../components/RadarChart'
 import LinkedInProfile from '../components/LinkedInProfile'
 import { Card } from '../components/ui/Card'
@@ -32,6 +32,7 @@ export default function ResultsPage() {
   const missing = data.missing || []
   const linkedinRawData = data.linkedin_raw_data || null
   const linkedinSkills = data.linkedin_skills || []
+  const githubData = data.github_analysis || null
   const suggestions = data.linkedin_suggestions || []
   const aiSuggestions = data.ai_suggestions || { resume_tips: [], skills_to_learn: [] }
   const jobRole = data.job_role || ''
@@ -330,6 +331,96 @@ export default function ResultsPage() {
                   </div>
                </div>
                <LinkedInProfile data={linkedinRawData} error={data.linkedin_error} loading={false} injectedSkills={linkedinSkills.length > 0 ? linkedinSkills : skills} />
+            </div>
+          )}
+
+          {/* Deep GitHub Codebase Integration */}
+          {githubData && (
+            <div className="lg:col-span-3 mt-12 w-full border-t border-brand-border pt-12 text-left">
+               <div className="flex items-center gap-4 mb-10 justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-warm flex items-center justify-center border border-brand-border text-brand-muted shadow-md">
+                     <Code2 size={24} />
+                  </div>
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold tracking-tighter text-brand-dark">GitHub Evaluation</h2>
+                    <p className="text-brand-muted text-xs font-medium uppercase tracking-[0.2em] mt-1 italic">Codebase Analysis and AI Assessment</p>
+                  </div>
+               </div>
+               
+               {githubData.error ? (
+                  <div className="p-6 bg-brand-warm rounded-[2rem] border border-brand-border text-center text-brand-danger font-medium shadow-sm">
+                    {githubData.error}
+                  </div>
+               ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                     <Card className="shadow-md border-brand-border/40">
+                        <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                           <Cpu size={14} /> Repository Intelligence
+                        </h2>
+                        <div className="flex items-center justify-between mb-8 pb-8 border-b border-brand-border">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Industry Score</p>
+                            <span className="text-4xl font-bold tracking-tighter text-brand-dark">{githubData.industry_score}</span>
+                            <span className="text-brand-muted text-sm font-bold ml-1">/ 100</span>
+                          </div>
+                          <div className="text-right">
+                             <div className="px-3 py-1 bg-brand-blue/10 text-brand-blue border border-brand-blue/20 rounded-lg text-[10px] font-bold uppercase tracking-widest inline-block mb-2">
+                               {githubData.status}
+                             </div>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Languages</p>
+                              <p className="text-sm font-bold text-brand-dark">{githubData.metrics?.languages_detected?.slice(0,2).join(', ')}{githubData.metrics?.languages_detected?.length > 2 ? '...' : ''}</p>
+                           </div>
+                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Total Lines</p>
+                              <p className="text-sm font-bold text-brand-dark">{githubData.metrics?.total_lines?.toLocaleString()}</p>
+                           </div>
+                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Code Quality</p>
+                              <p className="text-sm font-bold text-brand-dark">{githubData.breakdown?.code_quality}%</p>
+                           </div>
+                           <div className="p-4 bg-brand-warm rounded-2xl border border-brand-border text-center">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted mb-1">Documentation</p>
+                              <p className="text-sm font-bold text-brand-dark">{githubData.breakdown?.documentation}%</p>
+                           </div>
+                        </div>
+                     </Card>
+
+                     <div className="space-y-8">
+                       <Card className="shadow-md border-brand-border/40">
+                          <h2 className="text-[10px] font-bold text-brand-blue uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                             <CheckCircle2 size={14} /> Proven Strengths
+                          </h2>
+                          <ul className="space-y-3">
+                             {githubData.strengths?.map((str, idx) => (
+                               <li key={idx} className="flex gap-3 text-sm text-brand-muted font-medium items-start leading-relaxed">
+                                 <CheckCircle2 size={16} className="text-brand-blue shrink-0 mt-0.5" />
+                                 {str}
+                               </li>
+                             ))}
+                          </ul>
+                       </Card>
+
+                       <Card className="shadow-md border-brand-border/40">
+                          <h2 className="text-[10px] font-bold text-brand-muted uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                             <TrendingUp size={14} /> Areas for Improvement
+                          </h2>
+                          <ul className="space-y-3">
+                             {githubData.weaknesses?.map((wk, idx) => (
+                               <li key={idx} className="flex gap-3 text-sm text-brand-dark font-medium items-start leading-relaxed">
+                                 <XCircle size={16} className="text-brand-muted shrink-0 mt-0.5" />
+                                 {wk}
+                               </li>
+                             ))}
+                          </ul>
+                       </Card>
+                     </div>
+                  </div>
+               )}
             </div>
           )}
 

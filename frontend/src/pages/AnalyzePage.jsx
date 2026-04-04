@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Upload, FileText, FileCheck, ShieldCheck, CheckCircle2, 
-  Info, AlertCircle, ArrowLeft, Cpu, HelpCircle, Lock
+  Info, AlertCircle, ArrowLeft, Cpu, HelpCircle, Lock, Code2
 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
@@ -15,6 +15,7 @@ export default function AnalyzePage() {
   
   const [jobDesc, setJobDesc] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
+  const [githubUrl, setGithubUrl] = useState('')
   const [file, setFile] = useState(null)
   const [dragActive, setDragActive] = useState(false)
   
@@ -61,6 +62,7 @@ export default function AnalyzePage() {
     formData.append('resume_file', file)
     formData.append('job_desc', jobDesc)
     formData.append('linkedin_url', linkedinUrl)
+    formData.append('github_url', githubUrl)
 
     try {
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://127.0.0.1:10000'
@@ -186,22 +188,29 @@ export default function AnalyzePage() {
                   </div>
                 </div>
 
-                {/* LinkedIn & Badge Section */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Links & Badge Section */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <Input 
                     label="LinkedIn Profile (Optional)" 
                     placeholder="linkedin.com/in/username"
                     value={linkedinUrl}
                     onChange={(e) => setLinkedinUrl(e.target.value)}
-                    className="!gap-4"
+                    className="!gap-2"
                   />
-                  <div className="flex flex-col gap-4">
+                  <Input 
+                    label="GitHub Profile/Repo (Optional)" 
+                    placeholder="github.com/username/repo"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    className="!gap-2"
+                  />
+                  <div className="flex flex-col gap-2">
                      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted flex items-center gap-2">
                         <ShieldCheck size={14} /> Verification
                      </span>
-                     <div className="bg-brand-warm border border-brand-border rounded-2xl h-full flex items-center px-5 py-3 gap-3">
+                     <div className="bg-brand-warm border border-brand-border rounded-2xl h-full flex items-center px-4 py-3 gap-3">
                         <CheckCircle2 size={16} className="text-brand-blue shrink-0" />
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark">Live verification enabled</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark">Live Intelligence enabled</span>
                      </div>
                   </div>
                 </div>

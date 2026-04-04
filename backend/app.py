@@ -133,10 +133,24 @@ def analyze_api():
     if linkedin_url:
         pdl_data = fetch_bright_data(linkedin_url)
 
+    # -------- GITHUB ENRICHMENT --------
+    github_url = request.form.get("github_url", "")
+
     # -------- ANALYZE RESUME --------
     try:
         print(f"Starting analysis for resume text length: {len(resume_text)}")
         result = analyze_resume(resume_text, job_desc, pdl_data)
+        
+        if github_url and github_url.startswith("https://github.com/"):
+            print(f"Starting GitHub Analysis for {github_url}")
+            try:
+                from github_analyzer import analyze_github_repo
+                github_result = analyze_github_repo(github_url)
+                result["github_analysis"] = github_result
+            except Exception as github_err:
+                print(f"Error running github analysis: {github_err}")
+                result["github_analysis"] = {"error": str(github_err)}
+
         print("Analysis complete.")
         return jsonify(result), 200
     except Exception as e:
