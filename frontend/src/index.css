@@ -1,10 +1,17 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-blue: #7dd3fc; /* sky-300 / light blue */
-  --color-brand-dark: #0a0a0a; /* black */
-  --color-brand-gray: #171717; /* neutral-900 */
-  --color-brand-light-gray: #a3a3a3; /* neutral-400 */
+  /* Brand Palette */
+  --color-brand-bg:      #FFF7FB;
+  --color-brand-dark:    #243447;
+  --color-brand-blue:    #5F9EA0;
+  --color-brand-heading: #6E8FA0;
+  --color-brand-muted:   #6B7A8C;
+  --color-brand-border:  #E7DDE5;
+  --color-brand-pink:    #F8DCE8;
+  --color-brand-warm:    #FAF6F2;
+  --color-brand-success: #DCEFE8;
+  --color-brand-danger:  #F3DDE2;
 }
 
 html, body {
@@ -12,27 +19,26 @@ html, body {
   padding: 0;
   width: 100%;
   min-height: 100vh;
-  background-color: var(--color-brand-dark);
-  color: var(--color-brand-light-gray);
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-dark);
   font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Watermelon UI Typography */
+/* Typography */
 h1, h2, h3, .text-glow {
-  color: var(--color-brand-blue);
-  text-shadow: 0 0 16px rgba(125, 211, 252, 0.2);
+  color: var(--color-brand-heading);
   letter-spacing: -0.025em;
 }
 
-/* Watermelon Glassmorphism */
+/* Light Glassmorphism — suits the warm bg */
 .glass-panel {
-  background: rgba(23, 23, 23, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+  background: rgba(255, 247, 251, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-brand-border);
+  box-shadow: 0 4px 24px 0 rgba(36, 52, 71, 0.07), 0 1px 3px rgba(36,52,71,0.05);
 }
 
 .glass-panel-hover {
@@ -40,9 +46,9 @@ h1, h2, h3, .text-glow {
 }
 
 .glass-panel-hover:hover {
-  background: rgba(23, 23, 23, 0.6);
-  border-color: rgba(125, 211, 252, 0.3);
-  box-shadow: 0 0 40px rgba(125, 211, 252, 0.1);
+  background: rgba(250, 246, 242, 0.9);
+  border-color: var(--color-brand-blue);
+  box-shadow: 0 8px 32px rgba(95, 158, 160, 0.15);
 }
 
 /* Premium Scrollbar */
@@ -50,10 +56,10 @@ h1, h2, h3, .text-glow {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-brand-dark);
+  background: var(--color-brand-bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: var(--color-brand-border);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {

@@ -11,7 +11,7 @@ export const Card = ({ children, className = '', hover = true, delay = 0 }) => {
       transition={{ duration: 0.5, delay }}
       className={`${baseStyles} ${hoverStyles} ${className}`}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-brand-blue/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-pink/10 to-transparent pointer-events-none" />
       <div className="relative z-10">{children}</div>
     </motion.div>
   )

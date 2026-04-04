@@ -22,7 +22,7 @@ export const Input = ({
         onChange={onChange}
         placeholder={placeholder}
         required={required}
-        className="w-full bg-brand-gray border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200"
+        className="w-full bg-brand-warm border border-brand-border rounded-xl px-4 py-3 text-brand-dark placeholder-brand-muted/50 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200 shadow-sm"
       />
     </div>
   )
@@ -52,7 +52,7 @@ export const Textarea = ({
         placeholder={placeholder}
         required={required}
         rows={rows}
-        className="w-full bg-brand-gray border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200 resize-none md:max-h-60"
+        className="w-full bg-brand-warm border border-brand-border rounded-xl px-4 py-3 text-brand-dark placeholder-brand-muted/50 focus:outline-none focus:border-brand-blue/50 focus:ring-1 focus:ring-brand-blue/20 transition-all duration-200 resize-none md:max-h-60 shadow-sm"
       />
     </div>
   )

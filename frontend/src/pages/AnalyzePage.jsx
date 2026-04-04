@@ -1,20 +1,44 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useRef } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Upload, FileText, Briefcase, Link as LinkIcon, ArrowRight, Loader2, ShieldCheck, Cpu } from 'lucide-react'
+import { 
+  Upload, FileText, FileCheck, ShieldCheck, CheckCircle2, 
+  Info, AlertCircle, ArrowLeft, Cpu, HelpCircle, Lock
+} from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { Input, Textarea } from '../components/ui/Input'
 
 export default function AnalyzePage() {
   const navigate = useNavigate()
+  const fileInputRef = useRef(null)
   
   const [jobDesc, setJobDesc] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [file, setFile] = useState(null)
+  const [dragActive, setDragActive] = useState(false)
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const handleDrag = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true)
+    } else if (e.type === "dragleave") {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0])
+    }
+  }
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -60,132 +84,193 @@ export default function AnalyzePage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-dark p-6 flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen bg-brand-bg flex flex-col font-['Inter',sans-serif]">
       
-      {/* Background illumination */}
-      <div className="absolute top-1/4 left-1/4 w-[800px] h-[500px] bg-brand-blue/5 rounded-full blur-[140px] pointer-events-none" />
-      
-      <div className="w-full max-w-3xl z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/5 bg-white/5 text-[9px] font-bold uppercase tracking-[0.3em] text-brand-blue mb-4">
-            <ShieldCheck size={12} /> Secure Intelligence Processing
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2 tracking-tight">Profile Intelligence Scan</h1>
-          <p className="text-brand-light-gray font-medium">Initialize candidate evaluation via resume, LinkedIn, and job requirements.</p>
-        </motion.div>
+      {/* 1. Navbar Section */}
+      <nav className="sticky top-0 z-50 bg-brand-bg/80 backdrop-blur-md border-b border-brand-border h-20">
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted hover:text-brand-dark transition-all group"
+          >
+            <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+            Home
+          </Link>
 
-        <Card className="border-white/10" hover={false}>
-          <AnimatePresence>
-            {error && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="mb-8 p-4 rounded-xl bg-red-500/5 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-              >
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                {error}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-brand-blue flex items-center justify-center text-white">
+               <Cpu size={18} />
+            </div>
+            <span className="text-xl font-bold tracking-tighter text-brand-dark">HireLens</span>
+          </Link>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {/* File Upload Area */}
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-blue ml-1 flex items-center gap-2">
-                <FileText size={12} /> Primary Source Document (PDF/IMG)
-              </label>
+          <div className="w-24 hidden md:block" /> {/* Spacer */}
+        </div>
+      </nav>
+
+      <main className="flex-1 max-w-6xl mx-auto px-6 py-16 w-full">
+        {/* Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold tracking-tighter text-brand-heading mb-3">Start a new analysis</h1>
+          <p className="text-lg text-brand-muted font-medium">Upload a resume and add role details to generate a clear, grounded candidate report.</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+          
+          {/* Main Form Panel (2fr) */}
+          <div className="lg:col-span-2">
+            <Card className="bg-white border-brand-border p-10 shadow-[0_20px_50px_-20px_rgba(36,52,71,0.05)] rounded-[2rem]" hover={false}>
               
-              <div className="relative group">
-                <label 
-                  className={`flex flex-col items-center justify-center w-full h-44 border-2 border-dashed rounded-2xl cursor-pointer transition-all duration-300 ${
-                    file 
-                      ? 'border-brand-blue bg-brand-blue/5 shadow-[0_0_20px_rgba(125,211,252,0.1)]' 
-                      : 'border-white/10 bg-brand-gray hover:border-brand-blue/40 hover:bg-white/[0.03]'
-                  }`}
-                >
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+              <AnimatePresence>
+                {error && (
+                  <motion.div 
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="mb-8 p-5 rounded-2xl bg-brand-danger/30 border border-brand-border text-brand-dark text-xs font-bold uppercase tracking-wider flex items-center gap-3"
+                  >
+                    <AlertCircle size={18} className="text-brand-muted" />
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <form onSubmit={handleSubmit} className="space-y-10">
+                
+                {/* File Dropzone */}
+                <div className="space-y-4">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted flex items-center gap-2">
+                    <FileText size={14} /> Resume (PDF or Image)
+                  </label>
+                  
+                  <div 
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    className={`relative p-8 rounded-[2rem] border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center text-center cursor-pointer min-h-[224px] ${
+                      file 
+                        ? 'border-brand-blue bg-brand-success/10' 
+                        : dragActive
+                          ? 'border-brand-blue bg-brand-blue/5'
+                          : 'border-brand-border bg-brand-warm/30 hover:border-brand-blue/40'
+                    }`}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      className="hidden" 
+                      accept=".pdf,.png,.jpg,.jpeg" 
+                      onChange={handleFileChange} 
+                    />
+
                     {file ? (
-                      <motion.div 
-                        initial={{ scale: 0.8 }} 
-                        animate={{ scale: 1 }} 
-                        className="text-center"
-                      >
-                        <div className="w-16 h-16 rounded-full bg-brand-blue/10 flex items-center justify-center mb-4 mx-auto border border-brand-blue/20">
-                           <ShieldCheck size={32} className="text-brand-blue" />
+                      <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-2xl bg-brand-success flex items-center justify-center mb-6 shadow-sm border border-brand-blue/10">
+                           <FileCheck size={32} className="text-brand-blue" />
                         </div>
-                        <p className="text-sm font-bold text-white mb-1">{file.name}</p>
-                        <p className="text-[10px] text-brand-blue font-bold uppercase tracking-widest">Ready for extraction</p>
+                        <h4 className="text-lg font-bold text-brand-dark mb-1 truncate max-w-xs">{file.name}</h4>
+                        <p className="text-[10px] text-brand-blue font-bold uppercase tracking-widest bg-brand-blue/10 px-3 py-1 rounded-full">Document Selected</p>
                       </motion.div>
                     ) : (
-                      <div className="text-center">
-                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 mx-auto border border-white/10 group-hover:border-brand-blue/30 transition-all">
-                           <Upload className="w-7 h-7 text-gray-500 group-hover:text-brand-blue transition-colors" />
+                      <div className="flex flex-col items-center">
+                        <div className="w-16 h-16 rounded-2xl bg-white border border-brand-border shadow-sm flex items-center justify-center mb-6 hover:bg-brand-blue hover:text-white hover:border-brand-blue transition-all cursor-pointer">
+                           <Upload size={30} />
                         </div>
-                        <p className="text-sm font-bold text-white mb-1">Upload Resume</p>
-                        <p className="text-[10px] text-brand-light-gray uppercase tracking-widest font-semibold">Drop file or click to browse</p>
+                        <h4 className="text-md font-bold text-brand-dark mb-1">Click or drag to upload resume</h4>
+                        <p className="text-xs text-brand-muted font-medium">PDF, PNG, or JPG formats</p>
                       </div>
                     )}
                   </div>
-                  <input type="file" className="hidden" accept=".pdf,.png,.jpg,.jpeg" onChange={handleFileChange} />
-                </label>
-              </div>
-            </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input 
-                label="LinkedIn Verification" 
-                placeholder="https://linkedin.com/in/username"
-                value={linkedinUrl}
-                onChange={(e) => setLinkedinUrl(e.target.value)}
-                name="linkedin"
-              />
-              <div className="flex flex-col gap-2">
-                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-blue ml-1 flex items-center gap-2">
-                    <ShieldCheck size={12} /> OSINT Protocol
-                 </span>
-                 <div className="bg-white/5 rounded-xl border border-white/10 h-full flex items-center px-4">
-                    <p className="text-[10px] text-brand-light-gray font-medium">Bright Data Real-time Scan Enabled</p>
-                 </div>
-              </div>
-            </div>
+                {/* LinkedIn & Badge Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <Input 
+                    label="LinkedIn Profile (Optional)" 
+                    placeholder="linkedin.com/in/username"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    className="!gap-4"
+                  />
+                  <div className="flex flex-col gap-4">
+                     <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted flex items-center gap-2">
+                        <ShieldCheck size={14} /> Verification
+                     </span>
+                     <div className="bg-brand-warm border border-brand-border rounded-2xl h-full flex items-center px-5 py-3 gap-3">
+                        <CheckCircle2 size={16} className="text-brand-blue shrink-0" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-dark">Live verification enabled</span>
+                     </div>
+                  </div>
+                </div>
 
-            <Textarea 
-              label="Target Job Intelligence (JD)"
-              placeholder="Paste job description to calibrate AI matching algorithms..."
-              rows={5}
-              value={jobDesc}
-              onChange={(e) => setJobDesc(e.target.value)}
-            />
+                {/* Job Description Textarea */}
+                <Textarea 
+                  label="Job Description"
+                  placeholder="Paste the role requirements here to compare against the resume..."
+                  rows={8}
+                  value={jobDesc}
+                  onChange={(e) => setJobDesc(e.target.value)}
+                  className="!gap-4"
+                />
 
-            <Button 
-              type="submit" 
-              variant="accent" 
-              className="w-full h-16 text-base"
-              loading={loading}
-            >
-              {loading ? (
-                <>Neural Scan In Progress...</>
-              ) : (
-                 <>Execute Analysis <ArrowRight size={20} /></>
-              )}
-            </Button>
-          </form>
-        </Card>
-        
-        <div className="mt-8 flex justify-center gap-6">
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/20">
-             <Cpu size={14} /> Llama 3 Core
+                {/* Submit Area */}
+                <div className="space-y-6 pt-4 text-center">
+                  <Button 
+                    type="submit" 
+                    variant="primary" 
+                    className="w-full h-16 text-base"
+                    loading={loading}
+                    disabled={loading}
+                  >
+                    {loading ? 'Analyzing resume...' : 'Generate candidate report'}
+                  </Button>
+                  <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted/60">
+                    <Info size={12} /> Processing usually takes 10–15 seconds
+                  </div>
+                </div>
+              </form>
+            </Card>
           </div>
-          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/20">
-             <ShieldCheck size={14} /> PII Encrypted
-          </div>
+
+          {/* Side Panel (1fr) */}
+          <aside className="space-y-8">
+             {/* Tips Card */}
+             <div className="bg-brand-warm border border-brand-border rounded-[2rem] p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-8">
+                   <Info size={20} className="text-brand-blue" />
+                   <h3 className="text-md font-bold text-brand-dark uppercase tracking-widest text-xs">Tips for submission</h3>
+                </div>
+                <div className="space-y-8">
+                   {[
+                     { title: "Use text-based PDFs", text: "Resume analysis is most accurate with standard text-based PDF documents." },
+                     { title: "Add a clear JD", text: "The more specific the job description, the more grounded the match score will be." },
+                     { title: "LinkedIn integration", text: "Adding a LinkedIn URL allows the report to include confirmed professional history." }
+                   ].map((tip, i) => (
+                     <div key={i} className="space-y-2">
+                        <h4 className="text-sm font-bold text-brand-dark tracking-tight">{tip.title}</h4>
+                        <p className="text-sm text-brand-muted leading-relaxed font-medium">{tip.text}</p>
+                     </div>
+                   ))}
+                </div>
+             </div>
+
+             {/* Privacy Card */}
+             <div className="bg-white border border-brand-border rounded-[2rem] p-8 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                   <Lock size={18} className="text-brand-muted" />
+                   <h3 className="text-sm font-bold text-brand-dark">Privacy & Data</h3>
+                </div>
+                <p className="text-sm text-brand-muted leading-relaxed font-medium">
+                  Resumes are processed securely and not used for training models. Data is encrypted and cleared after analysis sessions.
+                </p>
+             </div>
+          </aside>
+
         </div>
-      </div>
+      </main>
+
     </div>
   )
 }

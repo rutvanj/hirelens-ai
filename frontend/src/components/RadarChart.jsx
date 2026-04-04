@@ -32,13 +32,13 @@ export default function RadarChart({ skills = [], missing = [] }) {
       {
         label: 'Intelligence Report',
         data: [matchScore, (100 - matchScore), 85, 95, 80],
-        backgroundColor: 'rgba(125, 211, 252, 0.15)',
-        borderColor: '#7dd3fc',
+        backgroundColor: 'rgba(95, 158, 160, 0.15)',
+        borderColor: '#5F9EA0',
         borderWidth: 2,
-        pointBackgroundColor: '#7dd3fc',
-        pointBorderColor: '#0a0a0a',
+        pointBackgroundColor: '#5F9EA0',
+        pointBorderColor: '#FFF7FB',
         pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: '#7dd3fc',
+        pointHoverBorderColor: '#5F9EA0',
       },
     ],
   }
@@ -46,10 +46,10 @@ export default function RadarChart({ skills = [], missing = [] }) {
   const options = {
     scales: {
       r: {
-        angleLines: { color: 'rgba(255, 255, 255, 0.05)' },
-        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+        angleLines: { color: 'rgba(36, 52, 71, 0.05)' },
+        grid: { color: 'rgba(36, 52, 71, 0.05)' },
         pointLabels: { 
-          color: 'rgba(255, 255, 255, 0.4)', 
+          color: 'rgba(36, 52, 71, 0.6)', 
           font: { 
             size: 9, 
             weight: 'bold',
@@ -62,10 +62,10 @@ export default function RadarChart({ skills = [], missing = [] }) {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#171717',
-        titleColor: '#7dd3fc',
+        backgroundColor: '#243447',
+        titleColor: '#5F9EA0',
         bodyColor: '#fff',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(36, 52, 71, 0.1)',
         borderWidth: 1,
         padding: 12,
         cornerRadius: 12,
